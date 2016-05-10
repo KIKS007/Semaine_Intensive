@@ -10,7 +10,7 @@ public enum Team
 	Team2
 }
 
-public class Plateform2DMotor : MonoBehaviour 
+public class PlayerScript : MonoBehaviour 
 {
 	public enum PlayerState
 	{
@@ -78,7 +78,6 @@ public class Plateform2DMotor : MonoBehaviour
 	private float angularDrag;
 	private bool useGravity;
 	private bool iskinematic;
-	private string originalTag;
 	private Vector3 throwDirection;
 	private float throwForceTemp;
 
@@ -144,6 +143,7 @@ public class Plateform2DMotor : MonoBehaviour
 	{
 		//Debug.Log (player.GetAxis("Movement_Vertical"));
 
+
 		Vector3 movement = new Vector3 (player.GetAxis("Movement_Horizontal"), 0, 0);
 
 		if(playerState == PlayerState.OnGround)
@@ -154,18 +154,17 @@ public class Plateform2DMotor : MonoBehaviour
 		if(playerState == PlayerState.InAir || playerState == PlayerState.Falling)
 		{
 			rb.MovePosition(rb.position + movement * maxAirSpeed * Time.fixedDeltaTime);
-			//rb.AddForce(new Vector3 (0, -gravityForce, 0), ForceMode.Acceleration);
-
 		}
 	}
 
 	void Gravity ()
 	{
+		//rb.AddForce(new Vector3 (0, -gravityForce, 0), ForceMode.Acceleration);
+
 		if(playerState == PlayerState.InAir || playerState == PlayerState.Falling)
 		{
 			if(player.GetAxis("Movement_Vertical") < 0)
 				rb.AddForce(new Vector3 (0, -fastGravityForce, 0), ForceMode.Acceleration);
-
 			else
 				rb.AddForce(new Vector3 (0, -gravityForce, 0), ForceMode.Acceleration);
 		}
@@ -173,7 +172,7 @@ public class Plateform2DMotor : MonoBehaviour
 
 	void IsGrounded ()
 	{
-		if(Physics.Raycast(transform.position, -Vector3.up, distToGround + 0.1f))
+		if(Physics.Raycast(transform.position, -Vector3.up, distToGround + 0.01f))
 		{
 			playerState = PlayerState.OnGround;
 			jumpState = JumpState.CanJump;
@@ -230,8 +229,8 @@ public class Plateform2DMotor : MonoBehaviour
 	IEnumerator Catch ()
 	{
 		holdingBall = true;
-		originalTag = holdBall.tag;
 		holdBall.tag = "HoldBall";
+		holdBall.layer = 10;
 
 		holdBall.transform.DOLocalRotate (Vector3.zero, 0.1f);
 
@@ -265,6 +264,7 @@ public class Plateform2DMotor : MonoBehaviour
 	IEnumerator Throw ()
 	{
 		holdBall.transform.SetParent (null);
+		holdBall.tag = "ThrownBall";
 
 		AddAndRemoveRigibody (true);
 
@@ -287,10 +287,10 @@ public class Plateform2DMotor : MonoBehaviour
 		holdingBall = false;
 		charging = false;
 
-		yield return new WaitForSeconds(0.025f);
+		yield return new WaitForSeconds(0.1f);
 
-		holdBallTemp.tag = "ThrownBall";
-		holdBallTemp.GetComponent<Collider>().enabled = true;
+		//holdBallTemp.GetComponent<Collider>().enabled = true;
+		holdBallTemp.layer = 0;
 	}
 
 	public void ReleaseVoid ()
@@ -318,7 +318,8 @@ public class Plateform2DMotor : MonoBehaviour
 		yield return new WaitForSeconds(0.1f);
 
 		holdBallTemp.tag = "Ball";
-		holdBallTemp.GetComponent<Collider>().enabled = true;
+		//holdBallTemp.GetComponent<Collider>().enabled = true;
+		holdBallTemp.layer = 0;
 	}
 
 	void AddAndRemoveRigibody (bool add)
@@ -333,7 +334,7 @@ public class Plateform2DMotor : MonoBehaviour
 			physicMat = holdBall.GetComponent<Collider> ().material;
 
 			Destroy (holdBall.GetComponent<Rigidbody> ());
-			holdBall.GetComponent<Collider>().enabled = false;
+			//holdBall.GetComponent<Collider>().enabled = false;
 		}
 		else
 		{
@@ -361,29 +362,12 @@ public class Plateform2DMotor : MonoBehaviour
 		}
 	}
 
-	void OnCollisionStay(Collision collision)
-	{
-		/*if(1 << collision.gameObject.layer == groundLayer.value && playerState != PlayerState.Dashing)
-		{
-			playerState = PlayerState.OnGround;
-			jumpState = JumpState.CanJump;
-		}*/
-	}
-
-	void OnCollisionExit(Collision collision)
-	{
-		/*if(1 << collision.gameObject.layer == groundLayer.value)
-		{
-			playerState = PlayerState.InAir;
-		}*/
-	}
-
 	void OnCollisionEnter(Collision collision)
 	{
-		if(collision.gameObject.tag == "Player")
+		if(playerState == PlayerState.Dashing && collision.gameObject.tag == "Player")
 		{
-			if(collision.gameObject.GetComponent<Plateform2DMotor>().holdingBall)
-				collision.gameObject.GetComponent<Plateform2DMotor>().ReleaseVoid();
+			if(collision.gameObject.GetComponent<PlayerScript>().holdingBall)
+				collision.gameObject.GetComponent<PlayerScript>().ReleaseVoid();
 		}
 	}
 
@@ -391,15 +375,27 @@ public class Plateform2DMotor : MonoBehaviour
 	{
 		if(other.tag == "Ball" && !holdingBall)
 		{
-			holdingBall = true;
-			holdBall = other.gameObject;
-			holdBall.GetComponent<BallScript>().team = team;
-			StartCoroutine (Catch ());
+			Vector3 direction = other.transform.position - transform.position;
+			RaycastHit objectHit;
+
+			if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Ground" && objectHit.collider.tag != "Player")
+			{
+				holdingBall = true;
+				holdBall = other.gameObject;
+				holdBall.GetComponent<BallScript>().team = team;
+				StartCoroutine (Catch ());
+			}
+
+
+
 		}
 
-		if(other.tag == "ThrownBall" && !holdingBall)
+		if(other.tag == "ThrownBall" && !holdingBall && other.GetComponent<BallScript>().team == team)
 		{
-			if(other.GetComponent<BallScript>().team == team)
+			Vector3 direction = other.transform.position - transform.position;
+			RaycastHit objectHit;
+
+			if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Ground" && objectHit.collider.tag != "Player")
 			{
 				holdingBall = true;
 				holdBall = other.gameObject;

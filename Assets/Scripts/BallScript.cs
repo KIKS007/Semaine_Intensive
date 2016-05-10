@@ -5,6 +5,16 @@ public class BallScript : MonoBehaviour
 {
 	public Team team;
 
+	public float gravityForce;
+
+	void FixedUpdate ()
+	{
+		if(GetComponent<Rigidbody>() != null)
+		{
+			GetComponent<Rigidbody>().AddForce(new Vector3 (0, -gravityForce, 0), ForceMode.Acceleration);
+		}
+	}
+
 	void OnCollisionEnter (Collision collision)
 	{
 		if(collision.gameObject.tag != "Player")
