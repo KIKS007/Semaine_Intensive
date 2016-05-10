@@ -79,7 +79,7 @@ public class Plateform2DMotor : MonoBehaviour
 		if (playerState != PlayerState.Dashing)
 		{
 			Movement ();
-			//Gravity ();
+			Gravity ();
 		}
 
 		if(jumpState == JumpState.HasJumped)
@@ -94,7 +94,7 @@ public class Plateform2DMotor : MonoBehaviour
 
 	void Movement ()
 	{
-		//Debug.Log (player.GetAxis("Movement_Horizontal"));
+		//Debug.Log (player.GetAxis("Movement_Vertical"));
 
 		Vector3 movement = new Vector3 (player.GetAxis("Movement_Horizontal"), 0, 0);
 
@@ -106,6 +106,8 @@ public class Plateform2DMotor : MonoBehaviour
 		if(playerState == PlayerState.InAir || playerState == PlayerState.Falling)
 		{
 			rb.MovePosition(rb.position + movement * maxAirSpeed * Time.fixedDeltaTime);
+			//rb.AddForce(new Vector3 (0, -gravityForce, 0), ForceMode.Acceleration);
+
 		}
 	}
 
@@ -114,10 +116,10 @@ public class Plateform2DMotor : MonoBehaviour
 		if(playerState == PlayerState.InAir || playerState == PlayerState.Falling)
 		{
 			if(player.GetAxis("Movement_Vertical") < 0)
-				rb.AddForce(new Vector3 (0, -gravityForce, 0), ForceMode.Acceleration);
+				rb.AddForce(new Vector3 (0, -fastGravityForce, 0), ForceMode.Acceleration);
 
 			else
-				rb.AddForce(new Vector3 (0, -fastGravityForce, 0), ForceMode.Acceleration);
+				rb.AddForce(new Vector3 (0, -gravityForce, 0), ForceMode.Acceleration);
 		}
 	}
 
