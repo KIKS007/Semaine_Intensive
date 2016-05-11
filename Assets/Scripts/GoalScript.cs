@@ -8,6 +8,7 @@ public class GoalScript : MonoBehaviour
 
 	private MatchManager matchManager;
 
+
 	void Start ()
 	{
 		matchManager = GameObject.FindGameObjectWithTag ("MatchManager").GetComponent<MatchManager> ();
@@ -22,6 +23,7 @@ public class GoalScript : MonoBehaviour
 				matchManager.PointToTeam1 (1);
 				DestroyBall (other.gameObject);
 				matchManager.InstantiateBall ();
+				transform.position = new Vector3(-39, 11.25f, 0);
 			}
 
 			if(team == Team.Team2)
