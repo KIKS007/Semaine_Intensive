@@ -19,5 +19,10 @@ public class BallScript : MonoBehaviour
 	{
 		if(collision.gameObject.tag != "Player")
 			gameObject.tag = "Ball";
+
+		if(collision.gameObject.tag == "Player" && collision.gameObject.GetComponent<PlayerScript>().team != team)
+		{
+			collision.gameObject.GetComponent<PlayerScript>().StunVoid ();
+		}
 	}
 }

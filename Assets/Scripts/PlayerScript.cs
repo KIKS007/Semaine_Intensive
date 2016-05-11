@@ -3,6 +3,7 @@ using System.Collections;
 using System;
 using Rewired;
 using DG.Tweening;
+using XInputDotNetPure;
 
 public enum Team
 {
@@ -10,25 +11,34 @@ public enum Team
 	Team2
 }
 
+public enum PlayerState
+{
+	OnGround,
+	InAir,
+	Falling,
+	Dashing,
+}
+
+public enum JumpState
+{
+	CanJump,
+	HasJumped,
+	HasDoubleJumped
+}
+
 public class PlayerScript : MonoBehaviour 
 {
-	public enum PlayerState
-	{
-		OnGround,
-		InAir,
-		Falling,
-		Dashing,
-	}
-
-	public enum JumpState
-	{
-		CanJump,
-		HasJumped,
-		HasDoubleJumped
-	}
+	public Action OnDash;
+	public Action OnGround;
+	public Action OnJump;
+	public Action OnStun;
+	public Action OnThrow;
+	public Action OnFacinRight;
+	public Action OnFacingLeft;
 
 	public int playerId = 0; // The Rewired player id of this character
-	private Player player; // The Rewired Player
+	[HideInInspector]
+	public Player player; // The Rewired Player
 	public PlayerState playerState;
 	public JumpState jumpState;
 	public Team team;
@@ -37,7 +47,7 @@ public class PlayerScript : MonoBehaviour
 	public float maxGroundSpeed = 3f;
 	public LayerMask groundLayer;
 
-	private bool facingLeft;
+	public bool facingLeft;
 	private Rigidbody rb;
 
 	[Header ("In Air")]
@@ -83,12 +93,38 @@ public class PlayerScript : MonoBehaviour
 
 	private bool charging = false;
 
+	[Header ("Stun")]
+	public float stunDuration;
+
+	[Header ("Screen Shake")]
+	public Vector2 stunScreenShake;
+
+	private CameraScreenShake screenShake;
+
+
+	[Header ("Vibration")]
+	public Vector3 jumpVibration;
+	public Vector3 groundVibration;
+	public Vector3 dashVibration;
+	public Vector3 stunVibration;
+	public Vector3 throwVibration;
+
+	private VibrationManager vibration;
+
+	public bool vibrate = false;
+	public Vector2 vibrationTest;
+	public float vibrationDuration;
+
+	public bool stunned = false;
+
 	// Use this for initialization
 	void Start () 
 	{
 		player = ReInput.players.GetPlayer(playerId);
 		rb = GetComponent<Rigidbody>();
 		distToGround = GetComponent<Collider> ().bounds.extents.y;
+		screenShake = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraScreenShake>();
+		vibration = GameObject.FindGameObjectWithTag("VibrationManager").GetComponent<VibrationManager>();
 	}
 	
 	// Update is called once per frame
@@ -101,7 +137,7 @@ public class PlayerScript : MonoBehaviour
 
 		throwDirection = new Vector3(player.GetAxis("Aim_Horizontal"), player.GetAxis("Aim_Vertical"), 0);
 
-		if(holdingBall)
+		if(holdingBall && !stunned)
 		{
 			if(player.GetButton("Throw") && !charging)
 			{
@@ -118,6 +154,13 @@ public class PlayerScript : MonoBehaviour
 				StartCoroutine(Throw ());
 			}
 		}
+
+		if(vibrate)
+		{
+			vibrate = false;
+
+			VibrationDebug ();
+		}
 	}
 
 	// Update is called once per frame
@@ -125,18 +168,27 @@ public class PlayerScript : MonoBehaviour
 	{
 		if (playerState != PlayerState.Dashing)
 		{
-			Movement ();
 			Gravity ();
 		}
 
-		if(jumpState == JumpState.HasJumped)
-			DoubleJump ();
+		if(!stunned)
+		{
+			if (playerState != PlayerState.Dashing)
+			{
+				Movement ();
+			}
 
-		if(jumpState == JumpState.CanJump)
-			Jump ();
+			if(jumpState == JumpState.HasJumped)
+				DoubleJump ();
 
-		if (canDash && playerState != PlayerState.Dashing && player.GetButtonDown("Dash"))
-			StartCoroutine (Dash ());
+			if(jumpState == JumpState.CanJump)
+				Jump ();
+
+			if (canDash && playerState != PlayerState.Dashing && player.GetButtonDown("Dash"))
+				StartCoroutine (Dash ());
+		}
+
+
 	}
 
 	void Movement ()
@@ -174,8 +226,15 @@ public class PlayerScript : MonoBehaviour
 	{
 		if(Physics.Raycast(transform.position, -Vector3.up, distToGround + 0.01f))
 		{
-			playerState = PlayerState.OnGround;
-			jumpState = JumpState.CanJump;
+
+			if(playerState != PlayerState.OnGround)
+			{
+				playerState = PlayerState.OnGround;
+				jumpState = JumpState.CanJump;
+
+				vibration.VibrateBothMotors(playerId, groundVibration.x, groundVibration.z, groundVibration.y, groundVibration.z);
+			}
+
 		}
 		else if(rb.velocity.y < 0)
 		{
@@ -193,6 +252,8 @@ public class PlayerScript : MonoBehaviour
 		{
 			rb.velocity = new Vector3 (rb.velocity.x, jumpForce, rb.velocity.z);
 			jumpState = JumpState.HasJumped;
+
+			OnJump ();
 		}
 	}
 
@@ -202,6 +263,8 @@ public class PlayerScript : MonoBehaviour
 		{
 			rb.velocity = new Vector3 (rb.velocity.x, doubleJumpForce, rb.velocity.z);
 			jumpState = JumpState.HasDoubleJumped;
+
+			OnJump ();
 		}
 	}
 
@@ -211,6 +274,8 @@ public class PlayerScript : MonoBehaviour
 
 		canDash = false;
 		playerState = PlayerState.Dashing;
+
+		vibration.VibrateBothMotors(playerId, dashVibration.x, dashVibration.z, dashVibration.y, dashVibration.z);
 
 		dashForceTemp = facingLeft ? -dashForce : dashForce;
 
@@ -266,6 +331,8 @@ public class PlayerScript : MonoBehaviour
 		holdBall.transform.SetParent (null);
 		holdBall.tag = "ThrownBall";
 
+		vibration.VibrateBothMotors(playerId, throwVibration.x, throwVibration.z, throwVibration.y, throwVibration.z);
+
 		AddAndRemoveRigibody (true);
 
 		if(throwDirection.magnitude == 0)
@@ -293,11 +360,6 @@ public class PlayerScript : MonoBehaviour
 		holdBallTemp.layer = 0;
 	}
 
-	public void ReleaseVoid ()
-	{
-		StartCoroutine (Release ());
-	}
-
 	IEnumerator Release ()
 	{
 		holdBall.transform.SetParent (null);
@@ -320,6 +382,42 @@ public class PlayerScript : MonoBehaviour
 		holdBallTemp.tag = "Ball";
 		//holdBallTemp.GetComponent<Collider>().enabled = true;
 		holdBallTemp.layer = 0;
+	}
+
+	public void StunVoid ()
+	{
+		Debug.Log("Stun");
+
+		if(holdingBall)
+			StartCoroutine (Release ());
+		
+		StartCoroutine (Stun ());
+	}
+
+	IEnumerator Stun ()
+	{
+		if(!stunned)
+		{
+			if(OnStun != null)
+				OnStun ();
+
+			stunned = true;
+
+			screenShake.CameraShaking(0.5f, 0.8f);
+			vibration.VibrateBothMotors(playerId, stunVibration.x, stunVibration.z, stunVibration.y, stunVibration.z);
+
+			yield return new WaitForSeconds (stunDuration);
+
+			stunned = false;
+
+			IsGrounded ();
+		}
+	}
+
+	void VibrationDebug ()
+	{
+		vibration.VibrateBothMotors(0, vibrationTest.x, vibrationDuration, vibrationTest.y, vibrationDuration);
+		vibration.VibrateBothMotors(1, vibrationTest.x, vibrationDuration, vibrationTest.y, vibrationDuration);
 	}
 
 	void AddAndRemoveRigibody (bool add)
@@ -352,13 +450,15 @@ public class PlayerScript : MonoBehaviour
 
 	void SetFacing()
 	{
-		if (player.GetAxis("Movement_Horizontal") < 0)
+		if (player.GetAxis("Movement_Horizontal") < 0 && facingLeft == false)
 		{
 			facingLeft = true;
+			OnFacingLeft ();
 		}
-		else if (player.GetAxis("Movement_Horizontal") > 0)
+		else if (player.GetAxis("Movement_Horizontal") > 0 && facingLeft == true)
 		{
 			facingLeft = false;
+			OnFacinRight ();
 		}
 	}
 
@@ -366,42 +466,81 @@ public class PlayerScript : MonoBehaviour
 	{
 		if(playerState == PlayerState.Dashing && collision.gameObject.tag == "Player")
 		{
-			if(collision.gameObject.GetComponent<PlayerScript>().holdingBall)
-				collision.gameObject.GetComponent<PlayerScript>().ReleaseVoid();
+			if(collision.gameObject.GetComponent<PlayerScript>())
+				collision.gameObject.GetComponent<PlayerScript>().StunVoid();
 		}
 	}
 
 	void OnTriggerEnter (Collider other)
 	{
-		if(other.tag == "Ball" && !holdingBall)
+		if(!stunned)
 		{
-			Vector3 direction = other.transform.position - transform.position;
-			RaycastHit objectHit;
-
-			if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Ground" && objectHit.collider.tag != "Player")
+			if(other.tag == "Ball" && !holdingBall)
 			{
-				holdingBall = true;
-				holdBall = other.gameObject;
-				holdBall.GetComponent<BallScript>().team = team;
-				StartCoroutine (Catch ());
+				Vector3 direction = other.transform.position - transform.position;
+				RaycastHit objectHit;
+
+				if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Ground" && objectHit.collider.tag != "Player")
+				{
+					holdingBall = true;
+					holdBall = other.gameObject;
+					holdBall.GetComponent<BallScript>().team = team;
+					StartCoroutine (Catch ());
+				}
 			}
 
+			if(other.tag == "ThrownBall" && !holdingBall && other.GetComponent<BallScript>().team == team)
+			{
+				Vector3 direction = other.transform.position - transform.position;
+				RaycastHit objectHit;
 
-
+				if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Ground" && objectHit.collider.tag != "Player")
+				{
+					holdingBall = true;
+					holdBall = other.gameObject;
+					holdBall.GetComponent<BallScript>().team = team;
+					StartCoroutine (Catch ());
+				}
+			}
 		}
 
-		if(other.tag == "ThrownBall" && !holdingBall && other.GetComponent<BallScript>().team == team)
-		{
-			Vector3 direction = other.transform.position - transform.position;
-			RaycastHit objectHit;
+	}
 
-			if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Ground" && objectHit.collider.tag != "Player")
-			{
-				holdingBall = true;
-				holdBall = other.gameObject;
-				holdBall.GetComponent<BallScript>().team = team;
-				StartCoroutine (Catch ());
-			}
+	void OnDisable ()
+	{
+		switch(playerId)
+		{
+		case 0:
+			GamePad.SetVibration (PlayerIndex.One, 0, 0);
+			break;
+		case 1:
+			GamePad.SetVibration (PlayerIndex.Two, 0, 0);
+			break;
+		case 2:
+			GamePad.SetVibration (PlayerIndex.Three, 0, 0);
+			break;
+		case 3:
+			GamePad.SetVibration (PlayerIndex.Four, 0, 0);
+			break;
+		}
+	}
+
+	void OnDestroy ()
+	{
+		switch(playerId)
+		{
+		case 0:
+			GamePad.SetVibration (PlayerIndex.One, 0, 0);
+			break;
+		case 1:
+			GamePad.SetVibration (PlayerIndex.Two, 0, 0);
+			break;
+		case 2:
+			GamePad.SetVibration (PlayerIndex.Three, 0, 0);
+			break;
+		case 3:
+			GamePad.SetVibration (PlayerIndex.Four, 0, 0);
+			break;
 		}
 	}
 }

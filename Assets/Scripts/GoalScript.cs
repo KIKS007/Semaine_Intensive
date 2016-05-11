@@ -8,9 +8,12 @@ public class GoalScript : MonoBehaviour
 
 	private MatchManager matchManager;
 
+	private CameraScreenShake screenShake;
+
 	void Start ()
 	{
 		matchManager = GameObject.FindGameObjectWithTag ("MatchManager").GetComponent<MatchManager> ();
+		screenShake = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraScreenShake>();
 	}
 
 	void OnTriggerEnter (Collider other)
@@ -22,6 +25,8 @@ public class GoalScript : MonoBehaviour
 				matchManager.PointToTeam1 (1);
 				DestroyBall (other.gameObject);
 				matchManager.InstantiateBall ();
+
+				screenShake.CameraShaking(1, 1);
 			}
 
 			if(team == Team.Team2)
@@ -29,6 +34,8 @@ public class GoalScript : MonoBehaviour
 				matchManager.PointToTeam2 (1);
 				DestroyBall (other.gameObject);
 				matchManager.InstantiateBall ();
+
+				screenShake.CameraShaking(1, 1);
 			}
 		}
 	}
