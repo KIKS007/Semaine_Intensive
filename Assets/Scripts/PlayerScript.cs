@@ -132,8 +132,9 @@ public class PlayerScript : MonoBehaviour
 	{
 		if (playerState != PlayerState.Dashing)
 			IsGrounded ();
-		
-		SetFacing();
+
+		if(!stunned)
+			SetFacing();
 
 		throwDirection = new Vector3(player.GetAxis("Aim_Horizontal"), player.GetAxis("Aim_Vertical"), 0);
 
@@ -328,7 +329,7 @@ public class PlayerScript : MonoBehaviour
 
 	IEnumerator Throw ()
 	{
-		holdBall.transform.SetParent (null);
+		holdBall.transform.SetParent (GameObject.FindGameObjectWithTag("BallsParent").transform);
 		holdBall.tag = "ThrownBall";
 
 		vibration.VibrateBothMotors(playerId, throwVibration.x, throwVibration.z, throwVibration.y, throwVibration.z);
@@ -357,12 +358,14 @@ public class PlayerScript : MonoBehaviour
 		yield return new WaitForSeconds(0.1f);
 
 		//holdBallTemp.GetComponent<Collider>().enabled = true;
-		holdBallTemp.layer = 0;
+
+		if(holdBallTemp != null)
+			holdBallTemp.layer = 0;
 	}
 
 	IEnumerator Release ()
 	{
-		holdBall.transform.SetParent (null);
+		holdBall.transform.SetParent (GameObject.FindGameObjectWithTag("BallsParent").transform);
 
 		AddAndRemoveRigibody (true);
 
@@ -453,7 +456,9 @@ public class PlayerScript : MonoBehaviour
 		if (player.GetAxis("Movement_Horizontal") < 0 && facingLeft == false)
 		{
 			facingLeft = true;
-			OnFacingLeft ();
+
+			if(OnFacingLeft != null)
+				OnFacingLeft ();
 		}
 		else if (player.GetAxis("Movement_Horizontal") > 0 && facingLeft == true)
 		{
@@ -475,7 +480,13 @@ public class PlayerScript : MonoBehaviour
 	{
 		if(!stunned)
 		{
-			if(other.tag == "Ball" && !holdingBall)
+
+			if(other.tag == "ThrownBall" && other.GetComponent<BallScript>().team != team)
+			{
+				StunVoid ();
+			}
+
+			else if(other.tag == "Ball" && !holdingBall)
 			{
 				Vector3 direction = other.transform.position - transform.position;
 				RaycastHit objectHit;
@@ -489,7 +500,9 @@ public class PlayerScript : MonoBehaviour
 				}
 			}
 
-			if(other.tag == "ThrownBall" && !holdingBall && other.GetComponent<BallScript>().team == team)
+
+
+			else if(other.tag == "ThrownBall" && !holdingBall && other.GetComponent<BallScript>().team == team)
 			{
 				Vector3 direction = other.transform.position - transform.position;
 				RaycastHit objectHit;

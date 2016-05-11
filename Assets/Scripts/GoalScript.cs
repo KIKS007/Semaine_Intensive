@@ -3,8 +3,9 @@ using System.Collections;
 
 public class GoalScript : MonoBehaviour 
 {
-
 	public Team team;
+
+	public GameObject butParticles;
 
 	private MatchManager matchManager;
 
@@ -22,21 +23,27 @@ public class GoalScript : MonoBehaviour
 		{
 			if(team == Team.Team1)
 			{
+				Instantiate (butParticles, other.transform.position, butParticles.transform.rotation);
+
 				matchManager.PointToTeam1 (1);
 				DestroyBall (other.gameObject);
 				matchManager.InstantiateBall ();
-
-				screenShake.CameraShaking(1, 1);
 			}
 
 			if(team == Team.Team2)
 			{
+				Instantiate (butParticles, other.transform.position, butParticles.transform.rotation);
+
 				matchManager.PointToTeam2 (1);
 				DestroyBall (other.gameObject);
 				matchManager.InstantiateBall ();
-
-				screenShake.CameraShaking(1, 1);
+	
 			}
+
+			screenShake.CameraShaking(1, 1);
+
+			if(matchManager.switchGoals)
+				matchManager.SwitchGoals (gameObject);
 		}
 	}
 

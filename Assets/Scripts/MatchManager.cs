@@ -16,12 +16,18 @@ public class MatchManager : MonoBehaviour
 	private string team2ScoreText;
 
 	[Header ("Balls")]
+	public bool switchGoals;
 	public GameObject ballPrefab;
 	public float sphereRadius;
 	public float minXRandomPos;
 	public float maxXRandomPos;
 	public float minYRandomPos;
 	public float maxYRandomPos;
+
+	[Header ("Switching Goals")]
+	public GameObject[] changingGoals = new GameObject[12];
+	public Material team1Color;
+	public Material team2Color;
 
 	// Use this for initialization
 	void Start () 
@@ -31,6 +37,9 @@ public class MatchManager : MonoBehaviour
 
 		team1ScoreText = team1Score.text;
 		team2ScoreText = team2Score.text;
+
+		if (switchGoals)
+			SetFirstGoals ();
 	}
 	
 	// Update is called once per frame
@@ -75,6 +84,53 @@ public class MatchManager : MonoBehaviour
 		while(Physics.CheckSphere (randomPos, sphereRadius, 0, QueryTriggerInteraction.Collide));
 
 		Instantiate (ballPrefab, randomPos, ballPrefab.transform.rotation);
+	}
+
+	void SetFirstGoals ()
+	{
+		for(int i = 0; i < changingGoals.Length; i++)
+		{
+			changingGoals [i].SetActive (false);
+		}
+
+		GameObject goal1 = changingGoals [Random.Range (0, changingGoals.Length)];
+		GameObject goal2;
+
+		do
+			goal2 = changingGoals [Random.Range (0, changingGoals.Length)];
+
+		while (goal2 == goal1);
+
+		goal1.GetComponent<GoalScript> ().team = Team.Team1;
+		goal1.GetComponent<MeshRenderer> ().material = team1Color;
+
+		goal2.GetComponent<GoalScript> ().team = Team.Team2;
+		goal2.GetComponent<MeshRenderer> ().material = team2Color;
+
+		goal1.SetActive (true);
+		goal2.SetActive (true);
+	}
+
+	public void SwitchGoals (GameObject whichGoal)
+	{
+		Team team = whichGoal.GetComponent<GoalScript> ().team;
+		GameObject newGoal;
+
+		do
+			newGoal = changingGoals [Random.Range (0, changingGoals.Length)];
+		
+		while (newGoal.activeSelf == true);
+
+		whichGoal.SetActive (false);
+
+		newGoal.GetComponent<GoalScript> ().team = team;
+
+		if (team == Team.Team1)
+			newGoal.GetComponent<MeshRenderer> ().material = team1Color;
+		else
+			newGoal.GetComponent<MeshRenderer> ().material = team2Color;
+
+		newGoal.SetActive (true);
 	}
 
 	void GameEnded (int whichTeam)
