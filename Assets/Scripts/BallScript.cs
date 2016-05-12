@@ -5,7 +5,8 @@ public class BallScript : MonoBehaviour
 {
 	public Team team;
 
-	public float gravityForce;
+	public float gravityWhenNoVelocity;
+	public float speedLimitToFall = 8;
 
 	public GameObject ballImpactParticules;
 
@@ -35,9 +36,9 @@ public class BallScript : MonoBehaviour
 		if(rb != null)
 			Debug.Log(rb.velocity.magnitude);
 
-		if(rb != null)
+		if(rb != null && rb.velocity.magnitude < speedLimitToFall)
 		{
-			rb.AddForce(new Vector3 (0, -gravityForce, 0), ForceMode.Acceleration);
+			rb.AddForce(new Vector3 (0, -gravityWhenNoVelocity, 0), ForceMode.Acceleration);
 		}
 
 	}
@@ -61,7 +62,7 @@ public class BallScript : MonoBehaviour
 			collision.gameObject.GetComponent<PlayerScript>().StunVoid ();
 		}
 
-		if(rb.velocity.magnitude > 10)
+		if(rb != null && rb.velocity.magnitude > speedLimitToFall)
 			StartCoroutine (ParticulesImpact (collision.contacts[0].point));
 	}
 

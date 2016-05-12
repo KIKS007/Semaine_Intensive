@@ -266,7 +266,8 @@ public class PlayerScript : MonoBehaviour
 			rb.velocity = new Vector3 (rb.velocity.x, doubleJumpForce, rb.velocity.z);
 			jumpState = JumpState.HasDoubleJumped;
 
-			OnJump ();
+			if(OnJump != null)
+				OnJump ();
 		}
 	}
 
@@ -340,7 +341,7 @@ public class PlayerScript : MonoBehaviour
 		if(throwDirection.magnitude == 0)
 		{
 			Vector3 direction = facingLeft ? -Vector3.right : Vector3.right;
-			direction.y = 0.2f;
+			direction.y = 0;
 
 			throwDirection = direction;
 		}
@@ -464,7 +465,9 @@ public class PlayerScript : MonoBehaviour
 		else if (player.GetAxis("Movement_Horizontal") > 0 && facingLeft == true)
 		{
 			facingLeft = false;
-			OnFacinRight ();
+
+			if(OnFacinRight != null)
+				OnFacinRight ();
 		}
 	}
 
