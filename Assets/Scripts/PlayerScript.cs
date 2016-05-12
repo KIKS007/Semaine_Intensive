@@ -254,7 +254,8 @@ public class PlayerScript : MonoBehaviour
 			rb.velocity = new Vector3 (rb.velocity.x, jumpForce, rb.velocity.z);
 			jumpState = JumpState.HasJumped;
 
-			OnJump ();
+			if(OnJump != null)
+				OnJump ();
 		}
 	}
 

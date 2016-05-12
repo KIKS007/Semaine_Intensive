@@ -23,6 +23,7 @@ public class MatchManager : MonoBehaviour
 	public float maxXRandomPos;
 	public float minYRandomPos;
 	public float maxYRandomPos;
+	public GameObject ballCreationParticles;
 
 	[Header ("Switching Goals")]
 	public GameObject[] changingGoals = new GameObject[12];
@@ -83,6 +84,8 @@ public class MatchManager : MonoBehaviour
 			randomPos = new Vector3 (Random.Range (minXRandomPos, maxXRandomPos), Random.Range (minYRandomPos, maxYRandomPos), 0);
 		while(Physics.CheckSphere (randomPos, sphereRadius, 0, QueryTriggerInteraction.Collide));
 
+
+		Instantiate (ballCreationParticles, randomPos, ballCreationParticles.transform.rotation);
 		Instantiate (ballPrefab, randomPos, ballPrefab.transform.rotation);
 	}
 

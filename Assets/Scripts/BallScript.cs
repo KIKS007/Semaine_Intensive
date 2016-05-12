@@ -7,12 +7,14 @@ public class BallScript : MonoBehaviour
 
 	public float gravityForce;
 
-	private Transform ballParticles;
+	public GameObject ballImpactParticules;
+
+	private Transform ballParticules;
 	private Rigidbody rb;
 
 	void Start ()
 	{
-		ballParticles = transform.GetChild (0).transform;
+		ballParticules = transform.GetChild (0).transform;
 		rb = GetComponent<Rigidbody> ();
 	}
 
@@ -30,7 +32,8 @@ public class BallScript : MonoBehaviour
 
 	void FixedUpdate ()
 	{
-
+		if(rb != null)
+			Debug.Log(rb.velocity.magnitude);
 
 		if(rb != null)
 		{
@@ -43,7 +46,7 @@ public class BallScript : MonoBehaviour
 	{
 		Quaternion rotation = Quaternion.LookRotation (-rb.velocity.normalized, Vector3.up);
 		//rotation.eulerAngles = new Vector3 (0, 0, rotation.eulerAngles.z);
-		ballParticles.localRotation = rotation;
+		ballParticules.localRotation = rotation;
 
 		Debug.Log (rotation);
 	}
@@ -57,5 +60,17 @@ public class BallScript : MonoBehaviour
 		{
 			collision.gameObject.GetComponent<PlayerScript>().StunVoid ();
 		}
+
+		if(rb.velocity.magnitude > 10)
+			StartCoroutine (ParticulesImpact (collision.contacts[0].point));
+	}
+
+	IEnumerator ParticulesImpact (Vector3 pos)
+	{
+		GameObject particuleClone = Instantiate(ballImpactParticules, pos, ballImpactParticules.transform.rotation) as GameObject;
+
+		yield return new WaitForSeconds(ballImpactParticules.GetComponent<ParticleSystem>().duration);
+
+		Destroy (particuleClone);
 	}
 }
