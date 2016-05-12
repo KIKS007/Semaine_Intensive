@@ -225,7 +225,7 @@ public class PlayerScript : MonoBehaviour
 
 	void IsGrounded ()
 	{
-		if(Physics.Raycast(transform.position, -Vector3.up, distToGround + 0.01f))
+		if(Physics.Raycast(transform.position, -Vector3.up, distToGround + 0.01f, groundLayer))
 		{
 
 			if(playerState != PlayerState.OnGround)
@@ -249,7 +249,7 @@ public class PlayerScript : MonoBehaviour
 
 	void Jump ()
 	{
-		if(player.GetButton("Jump"))
+		if(player.GetButtonDown("Jump"))
 		{
 			rb.velocity = new Vector3 (rb.velocity.x, jumpForce, rb.velocity.z);
 			jumpState = JumpState.HasJumped;
