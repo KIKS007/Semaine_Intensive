@@ -25,7 +25,7 @@ public class GoalScript : MonoBehaviour
 			{
 				Instantiate (butParticles, other.transform.position, butParticles.transform.rotation);
 
-				matchManager.PointToTeam1 (1);
+				matchManager.PointToTeam2 (1);
 				DestroyBall (other.gameObject);
 				matchManager.InstantiateBall ();
 			}
@@ -34,7 +34,7 @@ public class GoalScript : MonoBehaviour
 			{
 				Instantiate (butParticles, other.transform.position, butParticles.transform.rotation);
 
-				matchManager.PointToTeam2 (1);
+				matchManager.PointToTeam1 (1);
 				DestroyBall (other.gameObject);
 				matchManager.InstantiateBall ();
 	

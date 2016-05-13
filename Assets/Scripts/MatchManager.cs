@@ -1,9 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using Rewired;
+using UnityEngine.SceneManagement;
 
 public class MatchManager : MonoBehaviour 
 {
+	public GameObject player1;
+	public GameObject player2;
+	public GameObject player3;
+	public GameObject player4;
+
 	[Header ("Points")]
 	public int pointsToWin;
 
@@ -11,9 +18,6 @@ public class MatchManager : MonoBehaviour
 	public int team2points;
 	public Text team1Score;
 	public Text team2Score;
-
-	private string team1ScoreText;
-	private string team2ScoreText;
 
 	[Header ("Balls")]
 	public bool switchGoals;
@@ -31,14 +35,41 @@ public class MatchManager : MonoBehaviour
 	public Material team1Color;
 	public Material team2Color;
 
+	public GameObject game;
+	public GameObject gameOver;
+	public GameObject menu;
+	public GameObject textteam1;
+	public GameObject textteam2;
+
+	private bool gameEnded = false;
+
 	// Use this for initialization
 	void Start () 
 	{
+		switch(ReInput.controllers.GetControllerCount(ControllerType.Joystick))
+		{
+		case 1:
+			player1.SetActive(true);
+			break;
+		case 2:
+			player1.SetActive(true);
+			player2.SetActive(true);
+			break;
+		case 3:
+			player1.SetActive(true);
+			player2.SetActive(true);
+			player3.SetActive(true);
+			break;
+		case 4:
+			player1.SetActive(true);
+			player2.SetActive(true);
+			player3.SetActive(true);
+			player4.SetActive(true);
+			break;
+		}
+
 		team1points = 0;
 		team2points = 0;
-
-		team1ScoreText = team1Score.text;
-		team2ScoreText = team2Score.text;
 
 		if (switchGoals)
 			SetFirstGoals ();
@@ -49,12 +80,12 @@ public class MatchManager : MonoBehaviour
 	{
 		UpdateTexts ();
 
-		if(team1points >= pointsToWin)
+		if(team1points >= pointsToWin && !gameEnded)
 		{
 			GameEnded (1);
 		}
 
-		if(team2points >= pointsToWin)
+		if(team2points >= pointsToWin && !gameEnded)
 		{
 			GameEnded (2);
 		}
@@ -62,9 +93,9 @@ public class MatchManager : MonoBehaviour
 
 	void UpdateTexts ()
 	{
-		team1Score.text = team1ScoreText + team1points;
+		team1Score.text = team1points.ToString ();
 
-		team2Score.text = team2ScoreText + team2points;
+		team2Score.text = team2points.ToString ();
 	}
 
 	public void PointToTeam1 (int howManyPoints)
@@ -149,6 +180,28 @@ public class MatchManager : MonoBehaviour
 
 	void GameEnded (int whichTeam)
 	{
-		
+		gameEnded = true;
+
+		game.SetActive(false);
+		gameOver.SetActive(true);
+
+		if(whichTeam == 1)
+			textteam1.SetActive(true);
+
+		if(whichTeam == 2)
+			textteam2.SetActive(true);
+
+
+		menu.GetComponent<Button>().Select ();
+	}
+
+	public void Menu ()
+	{
+		SceneManager.LoadScene("Menu");
+	}
+
+	public void Quit ()
+	{
+		Application.Quit ();
 	}
 }
