@@ -15,8 +15,7 @@ public enum PlayerState
 {
 	OnGround,
 	InAir,
-	Falling,
-	Dashing,
+	Falling
 }
 
 public enum JumpState
@@ -24,6 +23,13 @@ public enum JumpState
 	CanJump,
 	HasJumped,
 	HasDoubleJumped
+}
+
+public enum DashState
+{
+	CanDash,
+	Dashing,
+	CoolDown
 }
 
 public class PlayerScript : MonoBehaviour 
@@ -41,6 +47,7 @@ public class PlayerScript : MonoBehaviour
 	public Player player; // The Rewired Player
 	public PlayerState playerState;
 	public JumpState jumpState;
+	public DashState dashState = DashState.CanDash;
 	public Team team;
 
 	[Header ("On Ground")]
@@ -134,8 +141,7 @@ public class PlayerScript : MonoBehaviour
 	// Update is called once per frame
 	void Update () 
 	{
-		if (playerState != PlayerState.Dashing)
-			IsGrounded ();
+		IsGrounded ();
 
 		if(!stunned)
 			SetFacing();
@@ -171,14 +177,18 @@ public class PlayerScript : MonoBehaviour
 	// Update is called once per frame
 	void FixedUpdate () 
 	{
-		if (playerState != PlayerState.Dashing)
+		if (dashState != DashState.Dashing)
 		{
+			rb.useGravity = true;
 			Gravity ();
 		}
+		else
+			rb.useGravity = false;
+
 
 		if(!stunned)
 		{
-			if (playerState != PlayerState.Dashing)
+			if (dashState != DashState.Dashing)
 			{
 				Movement ();
 			}
@@ -189,7 +199,7 @@ public class PlayerScript : MonoBehaviour
 			if(jumpState == JumpState.CanJump)
 				Jump ();
 
-			if (canDash && playerState != PlayerState.Dashing && player.GetButtonDown("Dash"))
+			if (canDash && dashState == DashState.CanDash && player.GetButtonDown("Dash"))
 				StartCoroutine (Dash ());
 		}
 
@@ -237,6 +247,9 @@ public class PlayerScript : MonoBehaviour
 				playerState = PlayerState.OnGround;
 				jumpState = JumpState.CanJump;
 
+				if(OnGround != null)
+					OnGround ();
+
 				vibration.VibrateBothMotors(playerId, groundVibration.x, groundVibration.z, groundVibration.y, groundVibration.z);
 			}
 
@@ -258,7 +271,6 @@ public class PlayerScript : MonoBehaviour
 			rb.velocity = new Vector3 (rb.velocity.x, jumpForce, rb.velocity.z);
 			jumpState = JumpState.HasJumped;
 
-			if(OnJump != null)
 				OnJump ();
 		}
 	}
@@ -280,7 +292,7 @@ public class PlayerScript : MonoBehaviour
 		float dashForceTemp = dashForce;
 
 		canDash = false;
-		playerState = PlayerState.Dashing;
+		dashState = DashState.Dashing;
 
 		vibration.VibrateBothMotors(playerId, dashVibration.x, dashVibration.z, dashVibration.y, dashVibration.z);
 
@@ -291,11 +303,15 @@ public class PlayerScript : MonoBehaviour
 
 		yield return new WaitForSeconds (dashDuration - 0.05f);
 
+		dashState = DashState.CoolDown;
+
 		IsGrounded ();
 
 		yield return new WaitForSeconds (dashCooldown);
 
 		canDash = true;
+
+		dashState = DashState.CanDash;
 	}
 
 	IEnumerator Catch ()
@@ -488,7 +504,7 @@ public class PlayerScript : MonoBehaviour
 
 	void OnCollisionEnter(Collision collision)
 	{
-		if(playerState == PlayerState.Dashing && collision.gameObject.tag == "Player")
+		if(dashState == DashState.Dashing && collision.gameObject.tag == "Player")
 		{
 			if(collision.gameObject.GetComponent<PlayerScript>())
 				collision.gameObject.GetComponent<PlayerScript>().StunVoid();

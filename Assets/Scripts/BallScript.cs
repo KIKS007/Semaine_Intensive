@@ -26,30 +26,18 @@ public class BallScript : MonoBehaviour
 			if(rb == null)
 				rb = GetComponent<Rigidbody> ();
 		}
-
-		if (rb != null && gameObject.tag == "ThrownBall")
-			SetParticulesRotation ();
 	}
 
 	void FixedUpdate ()
 	{
-		if(rb != null)
-			Debug.Log(rb.velocity.magnitude);
+		/*if(rb != null)
+			Debug.Log(rb.velocity.magnitude);*/
 
 		if(rb != null && rb.velocity.magnitude < speedLimitToFall)
 		{
 			rb.AddForce(new Vector3 (0, -gravityWhenNoVelocity, 0), ForceMode.Acceleration);
 		}
 
-	}
-
-	void SetParticulesRotation ()
-	{
-		Quaternion rotation = Quaternion.LookRotation (-rb.velocity.normalized, Vector3.up);
-		//rotation.eulerAngles = new Vector3 (0, 0, rotation.eulerAngles.z);
-		ballParticules.localRotation = rotation;
-
-		Debug.Log (rotation);
 	}
 
 	void OnCollisionEnter (Collision collision)

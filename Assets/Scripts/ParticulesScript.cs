@@ -27,7 +27,7 @@ public class ParticulesScript : MonoBehaviour
 		if (playerScript.stunned == true && stunParticlesClones == null)
 			StartCoroutine (Stun ());
 
-		if(playerScript.playerState == PlayerState.Dashing && dashParticlesClones == null)
+		if(playerScript.dashState == DashState.Dashing && dashParticlesClones == null)
 			StartCoroutine (Dash ());
 
 	}
