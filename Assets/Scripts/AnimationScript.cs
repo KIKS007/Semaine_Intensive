@@ -21,8 +21,9 @@ public class AnimationScript : MonoBehaviour
 		//playerScript.OnFacingLeft = FaceLeft ;
 		//playerScript.OnFacinRight = FaceRight ;
 		playerScript.OnJump = Jump;
-		playerScript.OnStun = Jump;
+		playerScript.OnStun = Stun;
 		playerScript.OnGround = Ground;
+		playerScript.OnThrow = Throw;
 
 	}
 	
@@ -44,30 +45,19 @@ public class AnimationScript : MonoBehaviour
 
 		if(playerState == PlayerState.OnGround && player.GetAxis("Movement_Horizontal") == 0)
 		{
-			if(!anim.GetCurrentAnimatorStateInfo(0).IsName("atterissage") && !anim.GetCurrentAnimatorStateInfo(0).IsName("iddle"))
+			if(!anim.GetCurrentAnimatorStateInfo(0).IsName("atterissage") 
+				&& !anim.GetCurrentAnimatorStateInfo(0).IsName("tir")
+				&& !anim.GetCurrentAnimatorStateInfo(0).IsName("degats")
+				&& !anim.GetCurrentAnimatorStateInfo(0).IsName("iddle"))
+			{
 				anim.SetTrigger("iddle");
+			}
 		}
 		else if(player.GetAxis("Movement_Horizontal") != 0)
 		{
 			anim.Play("marche");
 		}
 
-		
-
-		/*if(playerState == PlayerState.OnGround)
-		{
-			if(player.GetAxis("Movement_Horizontal") == 0)
-			{
-				if(!anim.GetCurrentAnimatorStateInfo(0).IsName("atterissage") && !anim.GetCurrentAnimatorStateInfo(0).IsName("iddle"))
-					anim.Play("tourne pour iddle");
-			}
-
-			else if(player.GetAxis("Movement_Horizontal") != 0)
-			{
-				anim.Play("marche");
-			}	
-
-		}*/
 
 		if(anim.GetCurrentAnimatorStateInfo(0).IsName("iddle"))
 		{
@@ -108,6 +98,11 @@ public class AnimationScript : MonoBehaviour
 
 
 		}
+	}
+
+	void Throw ()
+	{
+		anim.Play("tir");
 	}
 
 	void Ground ()

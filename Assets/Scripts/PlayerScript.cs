@@ -324,14 +324,16 @@ public class PlayerScript : MonoBehaviour
 
 		AddAndRemoveRigibody (false);
 
-		while(Vector3.Distance(holdBall.transform.position, holdPoint.transform.position) > distanceMinToCatch)
+		/*while(Vector3.Distance(holdBall.transform.position, holdPoint.transform.position) > distanceMinToCatch)
 		{
 			holdBall.transform.position = Vector3.Lerp(holdBall.transform.position, holdPoint.transform.position, catchLerp);
 			yield return null;
 
 			if(holdBall == null)
 				break;
-		}
+		}*/
+
+		StartCoroutine (SetBalPosition ());
 
 		if(holdBall != null)
 			holdBall.transform.SetParent (transform);		
@@ -353,6 +355,9 @@ public class PlayerScript : MonoBehaviour
 	{
 		holdBall.transform.SetParent (GameObject.FindGameObjectWithTag("BallsParent").transform);
 		holdBall.tag = "ThrownBall";
+
+		if(OnThrow != null)
+			OnThrow ();
 
 		StartCoroutine (ThrowParticules ());
 
@@ -500,6 +505,20 @@ public class PlayerScript : MonoBehaviour
 			if(OnFacinRight != null)
 				OnFacinRight ();
 		}
+	}
+
+	IEnumerator SetBalPosition ()
+	{
+		while(holdingBall)
+		{
+			holdBall.transform.position = Vector3.Lerp(holdBall.transform.position, holdPoint.transform.position, catchLerp);
+			yield return null;
+
+			if(holdBall == null)
+				break;
+		}
+
+		yield return null;
 	}
 
 	void OnCollisionEnter(Collision collision)
