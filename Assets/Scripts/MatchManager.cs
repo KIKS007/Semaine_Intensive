@@ -24,6 +24,7 @@ public class MatchManager : MonoBehaviour
 	public float minYRandomPos;
 	public float maxYRandomPos;
 	public GameObject ballCreationParticles;
+	public Material[] ballMaterials = new Material[3];
 
 	[Header ("Switching Goals")]
 	public GameObject[] changingGoals = new GameObject[12];
@@ -84,9 +85,19 @@ public class MatchManager : MonoBehaviour
 			randomPos = new Vector3 (Random.Range (minXRandomPos, maxXRandomPos), Random.Range (minYRandomPos, maxYRandomPos), 0);
 		while(Physics.CheckSphere (randomPos, sphereRadius, 0, QueryTriggerInteraction.Collide));
 
+		GameObject ballClone = Instantiate (ballPrefab, randomPos, ballPrefab.transform.rotation) as GameObject;
+		ballClone.GetComponent<MeshRenderer>().material = ballMaterials [Random.Range(0, ballMaterials.Length)];
 
-		Instantiate (ballCreationParticles, randomPos, ballCreationParticles.transform.rotation);
-		Instantiate (ballPrefab, randomPos, ballPrefab.transform.rotation);
+		StartCoroutine (BallParticulesCreation (randomPos));
+	}
+
+	IEnumerator BallParticulesCreation (Vector3 pos)
+	{
+		GameObject particulesClone = Instantiate (ballCreationParticles, pos, ballCreationParticles.transform.rotation) as GameObject;
+
+		yield return new WaitForSeconds (particulesClone.GetComponent<ParticleSystem>().duration);
+
+		Destroy (particulesClone);
 	}
 
 	void SetFirstGoals ()

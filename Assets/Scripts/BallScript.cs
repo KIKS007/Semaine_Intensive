@@ -27,8 +27,8 @@ public class BallScript : MonoBehaviour
 				rb = GetComponent<Rigidbody> ();
 		}
 
-		/*if (rb != null && gameObject.tag == "ThrownBall")
-			SetParticulesRotation ();*/
+		if (rb != null && gameObject.tag == "ThrownBall")
+			SetParticulesRotation ();
 	}
 
 	void FixedUpdate ()

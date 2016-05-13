@@ -80,6 +80,7 @@ public class PlayerScript : MonoBehaviour
 	public float throwForceMin;
 	public float throwForceMax;
 	public float timeToMaxForce;
+	public GameObject throwParticules;
 
 	private GameObject holdBall;
 	private PhysicMaterial physicMat;
@@ -95,6 +96,9 @@ public class PlayerScript : MonoBehaviour
 
 	[Header ("Stun")]
 	public float stunDuration;
+	public GameObject stunParticulesTeam1;
+	public GameObject stunParticulesTeam2;
+
 
 	[Header ("Screen Shake")]
 	public Vector2 stunScreenShake;
@@ -326,13 +330,15 @@ public class PlayerScript : MonoBehaviour
 		throwForceTemp = throwForceMin;
 		//Debug.Log("Force After " + throwForceTemp);
 		DOTween.To(() => throwForceTemp, x => throwForceTemp = x, throwForceMax, timeToMaxForce).SetId("ThrowForce");
-		holdBall.GetComponent<Renderer>().material.DOColor(Color.red, timeToMaxForce).SetId("ThrowForce");
+		//holdBall.GetComponent<Renderer>().material.DOColor(Color.red, timeToMaxForce).SetId("ThrowForce");
 	}
 
 	IEnumerator Throw ()
 	{
 		holdBall.transform.SetParent (GameObject.FindGameObjectWithTag("BallsParent").transform);
 		holdBall.tag = "ThrownBall";
+
+		StartCoroutine (ThrowParticules ());
 
 		vibration.VibrateBothMotors(playerId, throwVibration.x, throwVibration.z, throwVibration.y, throwVibration.z);
 
@@ -349,7 +355,7 @@ public class PlayerScript : MonoBehaviour
 		holdBall.GetComponent<Rigidbody> ().AddForce (throwDirection * throwForceTemp, ForceMode.VelocityChange);
 		//Debug.Log(throwForceTemp);
 
-		holdBall.GetComponent<Renderer>().material.color = Color.white;
+		//holdBall.GetComponent<Renderer>().material.color = Color.white;
 
 		GameObject holdBallTemp = holdBall;
 		holdBall = null;
@@ -357,12 +363,21 @@ public class PlayerScript : MonoBehaviour
 		holdingBall = false;
 		charging = false;
 
-		yield return new WaitForSeconds(0.1f);
+		yield return new WaitForSeconds(0.05f);
 
 		//holdBallTemp.GetComponent<Collider>().enabled = true;
 
 		if(holdBallTemp != null)
 			holdBallTemp.layer = 0;
+	}
+
+	IEnumerator ThrowParticules ()
+	{
+		GameObject particulesClone = Instantiate (throwParticules, holdPoint.position, throwParticules.transform.rotation) as GameObject;
+
+		yield return new WaitForSeconds (particulesClone.GetComponent<ParticleSystem>().duration);
+
+		Destroy (particulesClone);
 	}
 
 	IEnumerator Release ()
@@ -374,7 +389,7 @@ public class PlayerScript : MonoBehaviour
 		//holdBall.GetComponent<Rigidbody> ().AddForce (throwDirection * throwForceTemp, ForceMode.VelocityChange);
 		//Debug.Log(throwForceTemp);
 
-		holdBall.GetComponent<Renderer>().material.color = Color.white;
+		//holdBall.GetComponent<Renderer>().material.color = Color.white;
 
 		GameObject holdBallTemp = holdBall;
 		holdBall = null;
@@ -477,6 +492,24 @@ public class PlayerScript : MonoBehaviour
 		{
 			if(collision.gameObject.GetComponent<PlayerScript>())
 				collision.gameObject.GetComponent<PlayerScript>().StunVoid();
+
+			StartCoroutine (StunParticules (collision.gameObject.GetComponent<PlayerScript>().team, collision.contacts[0].point));
+		}
+	}
+
+	IEnumerator StunParticules (Team whichTeam, Vector3 pos)
+	{
+		if(whichTeam == Team.Team1)
+		{
+			GameObject particulesClone = Instantiate(stunParticulesTeam1, pos, stunParticulesTeam1.transform.rotation) as GameObject;
+			yield return new WaitForSeconds(particulesClone.GetComponent<ParticleSystem>().duration);
+			Destroy(particulesClone);
+		}
+		else
+		{
+			GameObject particulesClone = Instantiate(stunParticulesTeam2, pos, stunParticulesTeam2.transform.rotation) as GameObject;
+			yield return new WaitForSeconds(particulesClone.GetComponent<ParticleSystem>().duration);
+			Destroy(particulesClone);
 		}
 	}
 
