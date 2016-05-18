@@ -31,9 +31,15 @@ public class MatchManager : MonoBehaviour
 	public Material[] ballMaterials = new Material[3];
 
 	[Header ("Switching Goals")]
+	public Transform goalsParents;
 	public GameObject[] changingGoals = new GameObject[12];
+	public GameObject team1GoalPrefab;
+	public GameObject team2GoalPrefab;
 	public Material team1Color;
 	public Material team2Color;
+
+	private GameObject team1Goalenabled;
+	private GameObject team2Goalenabled;
 
 	public GameObject game;
 	public GameObject gameOver;
@@ -146,14 +152,14 @@ public class MatchManager : MonoBehaviour
 
 		while (goal2 == goal1);
 
-		goal1.GetComponent<GoalScript> ().team = Team.Team1;
-		goal1.GetComponent<MeshRenderer> ().material = team1Color;
+		GameObject goal1Temp = Instantiate (team1GoalPrefab, goal1.transform.position, goal1.transform.rotation) as GameObject;
+		GameObject goal2Temp = Instantiate (team2GoalPrefab, goal2.transform.position, goal2.transform.rotation) as GameObject;
 
-		goal2.GetComponent<GoalScript> ().team = Team.Team2;
-		goal2.GetComponent<MeshRenderer> ().material = team2Color;
+		goal1Temp.transform.SetParent (goalsParents);
+		goal2Temp.transform.SetParent (goalsParents);
 
-		goal1.SetActive (true);
-		goal2.SetActive (true);
+		team1Goalenabled = goal1Temp;
+		team2Goalenabled = goal2Temp;
 	}
 
 	public void SwitchGoals (GameObject whichGoal)
@@ -164,18 +170,18 @@ public class MatchManager : MonoBehaviour
 		do
 			newGoal = changingGoals [Random.Range (0, changingGoals.Length)];
 		
-		while (newGoal.activeSelf == true);
+		while (newGoal.transform.position == team1Goalenabled.transform.position || newGoal.transform.position == team2Goalenabled.transform.position);
 
-		whichGoal.SetActive (false);
 
-		newGoal.GetComponent<GoalScript> ().team = team;
+		GameObject goalTemp;
 
 		if (team == Team.Team1)
-			newGoal.GetComponent<MeshRenderer> ().material = team1Color;
+			team1Goalenabled = goalTemp = Instantiate (team1GoalPrefab, newGoal.transform.position, newGoal.transform.rotation) as GameObject;
+		
 		else
-			newGoal.GetComponent<MeshRenderer> ().material = team2Color;
+			team2Goalenabled = goalTemp = Instantiate (team2GoalPrefab, newGoal.transform.position, newGoal.transform.rotation) as GameObject;
 
-		newGoal.SetActive (true);
+		goalTemp.transform.SetParent (goalsParents);
 	}
 
 	void GameEnded (int whichTeam)
@@ -204,4 +210,5 @@ public class MatchManager : MonoBehaviour
 	{
 		Application.Quit ();
 	}
+		
 }

@@ -445,7 +445,7 @@ public class PlayerScript : MonoBehaviour
 			stunned = true;
 
 			screenShake.CameraShaking(0.5f, 0.8f);
-			vibration.VibrateBothMotors(playerId, stunVibration.x, stunVibration.z, stunVibration.y, stunVibration.z);
+			vibration.VibrateBothMotors(playerId, stunVibration.x, stunVibration.z, stunVibration.y, stunVibration.z, 0, 1);
 
 			yield return new WaitForSeconds (stunDuration);
 

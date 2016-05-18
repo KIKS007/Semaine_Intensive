@@ -44,7 +44,6 @@ public class CameraScreenShake : MonoBehaviour
 		if(!DOTween.IsTweening("ScreenShake"))
 		{
 			transform.DOMove(initialPosition, 0.5f);
-			Debug.Log("Stop");
 		}
 	}
 

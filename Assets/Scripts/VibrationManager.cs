@@ -40,23 +40,44 @@ public class VibrationManager : MonoBehaviour
 	public void VibrateBothMotors (int whichPlayer, float leftMotor = 0f, float durationLeftMotor = 0f, float rightMotor = 0f, float durationRightMotor = 0f, float startDuration = 0f, float stopDuration = 0f, Ease easeType = Ease.Linear)
 	{
 		if(leftMotor != 0)
+		{
+			if(DOTween.IsTweening("Vibration" + whichPlayer))
+				DOTween.Complete("Vibration" + whichPlayer);
+
 			StartCoroutine(VibrationLeftMotor (whichPlayer, leftMotor, durationLeftMotor, startDuration, stopDuration, easeType));
+		}
 
 		if(rightMotor != 0)
+		{
+			if(DOTween.IsTweening("Vibration" + whichPlayer))
+				DOTween.Complete("Vibration" + whichPlayer);
+			
 			StartCoroutine(VibrationRightMotor (whichPlayer, rightMotor, durationRightMotor, startDuration, stopDuration, easeType));
+		}
 	}
 
 	public void VibrateLeftMotor (int whichPlayer, float leftMotor = 0f, float durationLeftMotor = 0f, float startDuration = 0f, float stopDuration = 0f, Ease easeType = Ease.Linear)
 	{
 		if(leftMotor != 0)
-			StartCoroutine(VibrationLeftMotor (whichPlayer, leftMotor, durationLeftMotor, startDuration, stopDuration, easeType));
+		{
+			if(DOTween.IsTweening("Vibration" + whichPlayer))
+				DOTween.Complete("Vibration" + whichPlayer);
+			
+			StartCoroutine (VibrationLeftMotor (whichPlayer, leftMotor, durationLeftMotor, startDuration, stopDuration, easeType));
+		}
 
 	}
 
 	public void VibrateRightMotor (int whichPlayer, float rightMotor = 0f, float durationRightMotor = 0f, float startDuration = 0f, float stopDuration = 0f, Ease easeType = Ease.Linear)
 	{
 		if(rightMotor != 0)
+		{
+			if(DOTween.IsTweening("Vibration" + whichPlayer))
+				DOTween.Complete("Vibration" + whichPlayer);
+			
 			StartCoroutine(VibrationRightMotor (whichPlayer, rightMotor, durationRightMotor, startDuration, stopDuration, easeType));
+
+		}
 
 	}
 
@@ -66,13 +87,13 @@ public class VibrationManager : MonoBehaviour
 		{
 			leftMotorVibrating [whichPlayer] = true;
 
-			Tween myTween = DOTween.To(()=> playersLeftMotor [whichPlayer], x=> playersLeftMotor [whichPlayer] = x, leftMotor, startDuration).SetEase(easeType);
+			Tween myTween = DOTween.To(()=> playersLeftMotor [whichPlayer], x=> playersLeftMotor [whichPlayer] = x, leftMotor, startDuration).SetEase(easeType).SetId("Vibration" + whichPlayer);
 
 			yield return myTween.WaitForCompletion ();
 
 			yield return new WaitForSeconds (durationLeftMotor);
 
-			myTween = DOTween.To(()=> playersLeftMotor [whichPlayer], x=> playersLeftMotor [whichPlayer] = x, 0, stopDuration).SetEase(easeType);
+			myTween = DOTween.To(()=> playersLeftMotor [whichPlayer], x=> playersLeftMotor [whichPlayer] = x, 0, stopDuration).SetEase(easeType).SetId("Vibration" + whichPlayer);
 
 			yield return myTween.WaitForCompletion ();
 
@@ -89,13 +110,13 @@ public class VibrationManager : MonoBehaviour
 		{
 			rightMotorVibrating [whichPlayer] = true;
 
-			Tween myTween = DOTween.To(()=> playersRightMotor [whichPlayer], x=> playersRightMotor [whichPlayer] = x, rightMotor, startDuration).SetEase(easeType);
+			Tween myTween = DOTween.To(()=> playersRightMotor [whichPlayer], x=> playersRightMotor [whichPlayer] = x, rightMotor, startDuration).SetEase(easeType).SetId("Vibration" + whichPlayer);
 
 			yield return myTween.WaitForCompletion ();
 
 			yield return new WaitForSeconds (durationRightMotor);
 
-			myTween = DOTween.To(()=> playersRightMotor [whichPlayer], x=> playersRightMotor [whichPlayer] = x, 0, stopDuration).SetEase(easeType);
+			myTween = DOTween.To(()=> playersRightMotor [whichPlayer], x=> playersRightMotor [whichPlayer] = x, 0, stopDuration).SetEase(easeType).SetId("Vibration" + whichPlayer);
 
 			yield return myTween.WaitForCompletion ();
 
