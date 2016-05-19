@@ -62,7 +62,7 @@ public class GoalScript : MonoBehaviour
 
 			StartCoroutine (WaitAndDestroy ());
 
-		//	StartCoroutine (GoalLights ());
+			StartCoroutine (GoalLights ());
 			screenShake.CameraShaking(screenShakeDuration, screenShakeForce);
 			GoalVibration ();
 
@@ -91,8 +91,6 @@ public class GoalScript : MonoBehaviour
 	IEnumerator GoalLights ()
 	{
 		Color tempColor = GetComponent<Renderer> ().material.GetColor ("_Color2");
-		Color originalColor = lights[0].GetColor("_Color2");
-		float originalBloom = lights[0].GetFloat("_Bloom");
 
 		for(int i = 0; i < lights.Length; i++)
 		{

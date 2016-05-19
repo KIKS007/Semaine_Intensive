@@ -41,10 +41,10 @@ public class CameraScreenShake : MonoBehaviour
 
 	void ResetCameraPosition ()
 	{
-		if(!DOTween.IsTweening("ScreenShake"))
+		/*if(!DOTween.IsTweening("ScreenShake"))
 		{
 			transform.DOMove(initialPosition, 0.5f);
-		}
+		}*/
 	}
 
 }

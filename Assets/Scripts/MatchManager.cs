@@ -35,8 +35,6 @@ public class MatchManager : MonoBehaviour
 	public GameObject[] changingGoals = new GameObject[12];
 	public GameObject team1GoalPrefab;
 	public GameObject team2GoalPrefab;
-	public Material team1Color;
-	public Material team2Color;
 
 	private GameObject team1Goalenabled;
 	private GameObject team2Goalenabled;
@@ -50,7 +48,7 @@ public class MatchManager : MonoBehaviour
 	private bool gameEnded = false;
 
 	// Use this for initialization
-	void Start () 
+	void Awake () 
 	{
 		switch(ReInput.controllers.GetControllerCount(ControllerType.Joystick))
 		{
@@ -75,7 +73,7 @@ public class MatchManager : MonoBehaviour
 		}
 
 		team1points = 0;
-		team2points = 0;
+		team2points = 0;		
 
 		if (switchGoals)
 			SetFirstGoals ();
@@ -124,6 +122,7 @@ public class MatchManager : MonoBehaviour
 
 		GameObject ballClone = Instantiate (ballPrefab, randomPos, ballPrefab.transform.rotation) as GameObject;
 		ballClone.GetComponent<MeshRenderer>().material = ballMaterials [Random.Range(0, ballMaterials.Length)];
+		ballClone.transform.SetParent (goalsParents);
 
 		StartCoroutine (BallParticulesCreation (randomPos));
 	}
@@ -197,6 +196,13 @@ public class MatchManager : MonoBehaviour
 		if(whichTeam == 2)
 			textteam2.SetActive(true);
 
+		team1Goalenabled.GetComponent<Renderer> ().enabled = false;
+		team1Goalenabled.transform.GetChild (0).gameObject.SetActive (false);
+		team1Goalenabled.transform.GetChild (1).gameObject.SetActive (false);
+
+		team2Goalenabled.GetComponent<Renderer> ().enabled = false;
+		team2Goalenabled.transform.GetChild (0).gameObject.SetActive (false);
+		team2Goalenabled.transform.GetChild (1).gameObject.SetActive (false);
 
 		menu.GetComponent<Button>().Select ();
 	}

@@ -67,7 +67,6 @@ public class PlayMenuScript : MonoBehaviour
 		{
 			robot1.DOMoveY(yMax, tweenDuration);
 			player1 = true;
-			Debug.Log("bite");
 		}
 		else
 		{

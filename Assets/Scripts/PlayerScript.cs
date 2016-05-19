@@ -143,6 +143,8 @@ public class PlayerScript : MonoBehaviour
 	{
 		IsGrounded ();
 
+		CanPassThrough ();
+	
 		if(!stunned)
 			SetFacing();
 
@@ -239,7 +241,7 @@ public class PlayerScript : MonoBehaviour
 
 	void IsGrounded ()
 	{
-		if(Physics.Raycast(transform.position, -Vector3.up, distToGround + 0.01f, groundLayer))
+		if(Physics.Raycast(transform.position, -Vector3.up, distToGround + 0.01f))
 		{
 
 			if(playerState != PlayerState.OnGround)
@@ -253,6 +255,9 @@ public class PlayerScript : MonoBehaviour
 				vibration.VibrateBothMotors(playerId, groundVibration.x, groundVibration.z, groundVibration.y, groundVibration.z);
 			}
 
+			if (gameObject.layer != 0)
+				gameObject.layer = 0;
+
 		}
 		else if(rb.velocity.y < 0)
 		{
@@ -264,6 +269,20 @@ public class PlayerScript : MonoBehaviour
 		}
 	}
 
+	void CanPassThrough ()
+	{
+		if(player.GetAxis("Movement_Vertical") < -0.8f && playerState == PlayerState.OnGround)
+		{
+			RaycastHit hitInfo;
+
+			if(Physics.Raycast(transform.position, -Vector3.up, out hitInfo, distToGround + 0.01f) && hitInfo.collider.gameObject.layer != 0)
+			{
+				playerState = PlayerState.Falling;
+				gameObject.layer = 13;
+			}
+		}
+	}
+
 	void Jump ()
 	{
 		if(player.GetButtonDown("Jump"))
@@ -271,7 +290,9 @@ public class PlayerScript : MonoBehaviour
 			rb.velocity = new Vector3 (rb.velocity.x, jumpForce, rb.velocity.z);
 			jumpState = JumpState.HasJumped;
 
-				OnJump ();
+			OnJump ();
+
+			gameObject.layer = 12;
 		}
 	}
 
@@ -299,7 +320,7 @@ public class PlayerScript : MonoBehaviour
 		dashForceTemp = facingLeft ? -dashForce : dashForce;
 
 		DOTween.To (() => dashForceTemp, x => dashForceTemp = x, 0, dashDuration).SetEase (dashEase).OnUpdate(
-			()=> rb.velocity = new Vector3(dashForceTemp, rb.velocity.y, rb.velocity.z));
+			()=> rb.velocity = new Vector3(dashForceTemp, 0, rb.velocity.z));
 
 		yield return new WaitForSeconds (dashDuration - 0.05f);
 
@@ -338,6 +359,9 @@ public class PlayerScript : MonoBehaviour
 		if(holdBall != null)
 			holdBall.transform.SetParent (transform);		
 
+		if (holdBall != null)
+			holdBall.GetComponent<Collider> ().enabled = false;
+
 		yield return null;
 	}
 
@@ -374,9 +398,6 @@ public class PlayerScript : MonoBehaviour
 		}
 			
 		holdBall.GetComponent<Rigidbody> ().AddForce (throwDirection * throwForceTemp, ForceMode.VelocityChange);
-		//Debug.Log(throwForceTemp);
-
-		//holdBall.GetComponent<Renderer>().material.color = Color.white;
 
 		GameObject holdBallTemp = holdBall;
 		holdBall = null;
@@ -384,12 +405,13 @@ public class PlayerScript : MonoBehaviour
 		holdingBall = false;
 		charging = false;
 
-		yield return new WaitForSeconds(0.05f);
-
-		//holdBallTemp.GetComponent<Collider>().enabled = true;
+		yield return new WaitForSeconds(0.1f);
 
 		if(holdBallTemp != null)
+		{
 			holdBallTemp.layer = 0;
+			holdBallTemp.GetComponent<Collider> ().enabled = true;
+		}
 	}
 
 	IEnumerator ThrowParticules ()
