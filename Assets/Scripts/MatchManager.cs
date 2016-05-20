@@ -11,6 +11,13 @@ public class MatchManager : MonoBehaviour
 	public GameObject player3;
 	public GameObject player4;
 
+	[Header ("Player Destruction")]
+	public GameObject team1ApparitionParticles;
+	public GameObject team2ApparitionParticles;
+	public GameObject team1DestructionParticles;
+	public GameObject team2DestructionParticles;
+	public float timeBeforeCreation;
+
 	[Header ("Points")]
 	public int pointsToWin;
 
@@ -23,12 +30,10 @@ public class MatchManager : MonoBehaviour
 	public bool switchGoals;
 	public GameObject ballPrefab;
 	public float sphereRadius;
-	public float minXRandomPos;
-	public float maxXRandomPos;
-	public float minYRandomPos;
-	public float maxYRandomPos;
 	public GameObject ballCreationParticles;
 	public Material[] ballMaterials = new Material[3];
+
+	private GameObject[] ballSpawnPoints = new GameObject[0];
 
 	[Header ("Switching Goals")]
 	public Transform goalsParents;
@@ -75,6 +80,8 @@ public class MatchManager : MonoBehaviour
 		team1points = 0;
 		team2points = 0;		
 
+		ballSpawnPoints = GameObject.FindGameObjectsWithTag("BallSpawn");
+
 		if (switchGoals)
 			SetFirstGoals ();
 	}
@@ -117,23 +124,45 @@ public class MatchManager : MonoBehaviour
 		Vector3 randomPos = new Vector3 ();
 
 		do
-			randomPos = new Vector3 (Random.Range (minXRandomPos, maxXRandomPos), Random.Range (minYRandomPos, maxYRandomPos), 0);
-		while(Physics.CheckSphere (randomPos, sphereRadius, 0, QueryTriggerInteraction.Collide));
+			randomPos = ballSpawnPoints[Random.Range(0, ballSpawnPoints.Length)].transform.position;
+		while(Physics.CheckSphere (randomPos, sphereRadius));
 
 		GameObject ballClone = Instantiate (ballPrefab, randomPos, ballPrefab.transform.rotation) as GameObject;
 		ballClone.GetComponent<MeshRenderer>().material = ballMaterials [Random.Range(0, ballMaterials.Length)];
 		ballClone.transform.SetParent (goalsParents);
 
-		StartCoroutine (BallParticulesCreation (randomPos));
+		BallParticulesCreation (randomPos);
 	}
 
-	IEnumerator BallParticulesCreation (Vector3 pos)
+	public void DestroyPlayerVoid (GameObject player, Team team)
 	{
-		GameObject particulesClone = Instantiate (ballCreationParticles, pos, ballCreationParticles.transform.rotation) as GameObject;
+		StartCoroutine (DestroyPlayer (player, team));
+	}
 
-		yield return new WaitForSeconds (particulesClone.GetComponent<ParticleSystem>().duration);
+	IEnumerator DestroyPlayer (GameObject player, Team team)
+	{
+		if(team == Team.Team1)
+			Instantiate (team1DestructionParticles, player.transform.position, team1DestructionParticles.transform.transform.rotation);
+		else
+			Instantiate (team2DestructionParticles, player.transform.position, team2DestructionParticles.transform.transform.rotation);
 
-		Destroy (particulesClone);
+		player.SetActive (false);
+
+		yield return new WaitForSeconds (timeBeforeCreation);
+
+		if(team == Team.Team1)
+			Instantiate (team1ApparitionParticles, player.transform.position, team1ApparitionParticles.transform.transform.rotation);
+		else
+			Instantiate (team2ApparitionParticles, player.transform.position, team2ApparitionParticles.transform.transform.rotation);
+
+		yield return new WaitForSeconds (0.5f);
+		player.SetActive (true);
+
+	}
+
+	void BallParticulesCreation (Vector3 pos)
+	{
+		Instantiate (ballCreationParticles, pos, ballCreationParticles.transform.rotation);
 	}
 
 	void SetFirstGoals ()

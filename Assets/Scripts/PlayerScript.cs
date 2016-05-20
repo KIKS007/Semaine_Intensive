@@ -8,7 +8,8 @@ using XInputDotNetPure;
 public enum Team
 {
 	Team1,
-	Team2
+	Team2,
+	None
 }
 
 public enum PlayerState
@@ -127,6 +128,9 @@ public class PlayerScript : MonoBehaviour
 	public float vibrationDuration;
 
 	public bool stunned = false;
+	public bool passingThrough = false;
+
+	private GameObject lastHoldBall;
 
 	// Use this for initialization
 	void Start () 
@@ -141,7 +145,8 @@ public class PlayerScript : MonoBehaviour
 	// Update is called once per frame
 	void Update () 
 	{
-		IsGrounded ();
+		if(!passingThrough)
+			IsGrounded ();
 
 		CanPassThrough ();
 	
@@ -152,16 +157,16 @@ public class PlayerScript : MonoBehaviour
 
 		if(holdingBall && !stunned)
 		{
-			if(player.GetButton("Throw") && !charging)
+			/*if(player.GetButton("Throw") && !charging)
 			{
 				charging = true;
 				//Debug.Log("Force Before " + throwForceTemp);
 				//DOTween.Pause("ThrowForce");
 				//DOTween.Complete("ThrowForce");
 				ThrowForce ();
-			}
+			}*/
 
-			else if(player.GetButtonUp("Throw") && charging)
+			if(player.GetButtonDown("Throw"))
 			{
 				DOTween.Pause("ThrowForce");
 				StartCoroutine(Throw ());
@@ -173,6 +178,12 @@ public class PlayerScript : MonoBehaviour
 			vibrate = false;
 
 			VibrationDebug ();
+		}
+
+
+		if(player.GetButtonDown("Jump") && player.GetAxis("Movement_Vertical") < -0.8f && playerState == PlayerState.OnGround && !passingThrough)
+		{
+			StartCoroutine (CanPassThrough ());
 		}
 	}
 
@@ -255,8 +266,8 @@ public class PlayerScript : MonoBehaviour
 				vibration.VibrateBothMotors(playerId, groundVibration.x, groundVibration.z, groundVibration.y, groundVibration.z);
 			}
 
-			if (gameObject.layer != 0)
-				gameObject.layer = 0;
+			if (gameObject.layer != 9)
+				gameObject.layer = 9;
 
 		}
 		else if(rb.velocity.y < 0)
@@ -269,23 +280,29 @@ public class PlayerScript : MonoBehaviour
 		}
 	}
 
-	void CanPassThrough ()
+	IEnumerator CanPassThrough ()
 	{
-		if(player.GetAxis("Movement_Vertical") < -0.8f && playerState == PlayerState.OnGround)
-		{
-			RaycastHit hitInfo;
+		passingThrough = true;
 
-			if(Physics.Raycast(transform.position, -Vector3.up, out hitInfo, distToGround + 0.01f) && hitInfo.collider.gameObject.layer != 0)
-			{
-				playerState = PlayerState.Falling;
-				gameObject.layer = 13;
-			}
+		RaycastHit hitInfo;
+
+		if(Physics.Raycast(transform.position, -Vector3.up, out hitInfo, distToGround + 0.01f) && hitInfo.collider.gameObject.layer != 0)
+		{
+			playerState = PlayerState.Falling;
+			gameObject.layer = 13;
+
+
+			yield return new WaitForSeconds (0.1f);
 		}
+
+		passingThrough = false;
+
+		yield return null;
 	}
 
 	void Jump ()
 	{
-		if(player.GetButtonDown("Jump"))
+		if(player.GetButtonDown("Jump") && player.GetAxis("Movement_Vertical") > -0.8f)
 		{
 			rb.velocity = new Vector3 (rb.velocity.x, jumpForce, rb.velocity.z);
 			jumpState = JumpState.HasJumped;
@@ -298,7 +315,7 @@ public class PlayerScript : MonoBehaviour
 
 	void DoubleJump ()
 	{
-		if(player.GetButtonDown("Jump"))
+		if(player.GetButtonDown("Jump") && player.GetAxis("Movement_Vertical") > -0.8f)
 		{
 			rb.velocity = new Vector3 (rb.velocity.x, doubleJumpForce, rb.velocity.z);
 			jumpState = JumpState.HasDoubleJumped;
@@ -337,22 +354,17 @@ public class PlayerScript : MonoBehaviour
 
 	IEnumerator Catch ()
 	{
+		lastHoldBall = holdBall;
+		Physics.IgnoreCollision (gameObject.GetComponent<Collider> (), lastHoldBall.GetComponent<Collider> ());
+
 		holdingBall = true;
 		holdBall.tag = "HoldBall";
-		holdBall.layer = 10;
+		//holdBall.layer = 10;
+		holdBall.GetComponent<BallScript> ().team = team;
 
 		holdBall.transform.DOLocalRotate (Vector3.zero, 0.1f);
 
 		AddAndRemoveRigibody (false);
-
-		/*while(Vector3.Distance(holdBall.transform.position, holdPoint.transform.position) > distanceMinToCatch)
-		{
-			holdBall.transform.position = Vector3.Lerp(holdBall.transform.position, holdPoint.transform.position, catchLerp);
-			yield return null;
-
-			if(holdBall == null)
-				break;
-		}*/
 
 		StartCoroutine (SetBalPosition ());
 
@@ -367,23 +379,23 @@ public class PlayerScript : MonoBehaviour
 
 	void ThrowForce ()
 	{
-		//Debug.Log(DOTween.PlayingTweens ());
-			
 		throwForceTemp = throwForceMin;
 		//Debug.Log("Force After " + throwForceTemp);
+
 		DOTween.To(() => throwForceTemp, x => throwForceTemp = x, throwForceMax, timeToMaxForce).SetId("ThrowForce");
-		//holdBall.GetComponent<Renderer>().material.DOColor(Color.red, timeToMaxForce).SetId("ThrowForce");
 	}
 
 	IEnumerator Throw ()
 	{
 		holdBall.transform.SetParent (GameObject.FindGameObjectWithTag("BallsParent").transform);
 		holdBall.tag = "ThrownBall";
+		holdBall.GetComponent<BallScript> ().CheckTeamVoid ();
 
 		if(OnThrow != null)
 			OnThrow ();
 
-		StartCoroutine (ThrowParticules ());
+		ThrowParticules ();
+		StartCoroutine (ForgetBall ());
 
 		vibration.VibrateBothMotors(playerId, throwVibration.x, throwVibration.z, throwVibration.y, throwVibration.z);
 
@@ -397,7 +409,7 @@ public class PlayerScript : MonoBehaviour
 			throwDirection = direction;
 		}
 			
-		holdBall.GetComponent<Rigidbody> ().AddForce (throwDirection * throwForceTemp, ForceMode.VelocityChange);
+		holdBall.GetComponent<Rigidbody> ().AddForce (throwDirection * throwForceMax, ForceMode.VelocityChange);
 
 		GameObject holdBallTemp = holdBall;
 		holdBall = null;
@@ -405,29 +417,38 @@ public class PlayerScript : MonoBehaviour
 		holdingBall = false;
 		charging = false;
 
-		yield return new WaitForSeconds(0.1f);
+		holdBallTemp.GetComponent<Collider> ().enabled = true;
+
+		yield return new WaitForSeconds(0.06f);
 
 		if(holdBallTemp != null)
 		{
-			holdBallTemp.layer = 0;
-			holdBallTemp.GetComponent<Collider> ().enabled = true;
+			//holdBallTemp.layer = 0;
 		}
 	}
 
-	IEnumerator ThrowParticules ()
+	void ThrowParticules ()
 	{
-		GameObject particulesClone = Instantiate (throwParticules, holdPoint.position, throwParticules.transform.rotation) as GameObject;
+		Instantiate (throwParticules, holdPoint.position, throwParticules.transform.rotation);
+	}
 
-		yield return new WaitForSeconds (particulesClone.GetComponent<ParticleSystem>().duration);
+	IEnumerator ForgetBall ()
+	{
+		yield return new WaitForSeconds (0.1f);
 
-		Destroy (particulesClone);
+		if(lastHoldBall != null)
+			Physics.IgnoreCollision (gameObject.GetComponent<Collider> (), lastHoldBall.GetComponent<Collider> (), false);
+		
+		lastHoldBall = null;
 	}
 
 	IEnumerator Release ()
 	{
 		holdBall.transform.SetParent (GameObject.FindGameObjectWithTag("BallsParent").transform);
+		holdBall.GetComponent<BallScript> ().CheckTeamVoid ();
 
 		AddAndRemoveRigibody (true);
+		StartCoroutine (ForgetBall ());
 
 		//holdBall.GetComponent<Rigidbody> ().AddForce (throwDirection * throwForceTemp, ForceMode.VelocityChange);
 		//Debug.Log(throwForceTemp);
@@ -440,11 +461,12 @@ public class PlayerScript : MonoBehaviour
 		holdingBall = false;
 		charging = false;
 
-		yield return new WaitForSeconds(0.1f);
+		holdBallTemp.GetComponent<Collider> ().enabled = true;
+
+		yield return new WaitForSeconds(0.06f);
 
 		holdBallTemp.tag = "Ball";
-		//holdBallTemp.GetComponent<Collider>().enabled = true;
-		holdBallTemp.layer = 0;
+		//holdBallTemp.layer = 0;
 	}
 
 	public void StunVoid ()
@@ -550,23 +572,19 @@ public class PlayerScript : MonoBehaviour
 			if(collision.gameObject.GetComponent<PlayerScript>())
 				collision.gameObject.GetComponent<PlayerScript>().StunVoid();
 
-			StartCoroutine (StunParticules (collision.gameObject.GetComponent<PlayerScript>().team, collision.contacts[0].point));
+			StunParticules (collision.gameObject.GetComponent<PlayerScript>().team, collision.contacts[0].point);
 		}
 	}
 
-	IEnumerator StunParticules (Team whichTeam, Vector3 pos)
+	void StunParticules (Team whichTeam, Vector3 pos)
 	{
 		if(whichTeam == Team.Team1)
 		{
-			GameObject particulesClone = Instantiate(stunParticulesTeam1, pos, stunParticulesTeam1.transform.rotation) as GameObject;
-			yield return new WaitForSeconds(particulesClone.GetComponent<ParticleSystem>().duration);
-			Destroy(particulesClone);
+			Instantiate(stunParticulesTeam1, pos, stunParticulesTeam1.transform.rotation);
 		}
 		else
 		{
-			GameObject particulesClone = Instantiate(stunParticulesTeam2, pos, stunParticulesTeam2.transform.rotation) as GameObject;
-			yield return new WaitForSeconds(particulesClone.GetComponent<ParticleSystem>().duration);
-			Destroy(particulesClone);
+			Instantiate(stunParticulesTeam2, pos, stunParticulesTeam2.transform.rotation);
 		}
 	}
 
@@ -575,38 +593,42 @@ public class PlayerScript : MonoBehaviour
 		if(!stunned)
 		{
 
-			if(other.tag == "ThrownBall" && other.GetComponent<BallScript>().team != team)
+			if(other.tag == "ThrownBall" && other.GetComponent<BallScript>().team != Team.None && other.GetComponent<BallScript>().team != team )
 			{
+				//Debug.Log (other.GetComponent<BallScript> ().team);
+
+				other.GetComponent<BallScript> ().team = Team.None;
 				StunVoid ();
 			}
 
-			else if(other.tag == "Ball" && !holdingBall)
+			else if(other.gameObject != lastHoldBall)
 			{
-				Vector3 direction = other.transform.position - transform.position;
-				RaycastHit objectHit;
-
-				if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Ground" && objectHit.collider.tag != "Player")
+				if(other.tag == "Ball" && !holdingBall)
 				{
-					holdingBall = true;
-					holdBall = other.gameObject;
-					holdBall.GetComponent<BallScript>().team = team;
-					StartCoroutine (Catch ());
+					Vector3 direction = other.transform.position - transform.position;
+					RaycastHit objectHit;
+
+					if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Plateformes" && objectHit.collider.tag != "Player")
+					{
+						holdingBall = true;
+						holdBall = other.gameObject;
+						holdBall.GetComponent<BallScript>().team = team;
+						StartCoroutine (Catch ());
+					}
 				}
-			}
 
-
-
-			else if(other.tag == "ThrownBall" && !holdingBall && other.GetComponent<BallScript>().team == team)
-			{
-				Vector3 direction = other.transform.position - transform.position;
-				RaycastHit objectHit;
-
-				if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Ground" && objectHit.collider.tag != "Player")
+				else if(other.tag == "ThrownBall" && !holdingBall && other.GetComponent<BallScript>().team == team)
 				{
-					holdingBall = true;
-					holdBall = other.gameObject;
-					holdBall.GetComponent<BallScript>().team = team;
-					StartCoroutine (Catch ());
+					Vector3 direction = other.transform.position - transform.position;
+					RaycastHit objectHit;
+
+					if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Plateformes" && objectHit.collider.tag != "Player")
+					{
+						holdingBall = true;
+						holdBall = other.gameObject;
+						holdBall.GetComponent<BallScript>().team = team;
+						StartCoroutine (Catch ());
+					}
 				}
 			}
 		}

@@ -39,11 +39,11 @@ public class GoalScript : MonoBehaviour
 
 	void OnTriggerEnter (Collider other)
 	{
-		if(other.tag == "ThrownBall" || other.tag == "Ball")
+		if(other.tag == "ThrownBall" && other.GetComponent<BallScript>().team != Team.None || other.tag == "Ball" && other.GetComponent<BallScript>().team != Team.None )
 		{
 			if(team == Team.Team1)
 			{
-				StartCoroutine (InstantiateBallParticles (other.transform.position));
+				InstantiateBallParticles (other.transform.position);
 
 				matchManager.PointToTeam2 (1);
 				DestroyBall (other.gameObject);
@@ -52,7 +52,7 @@ public class GoalScript : MonoBehaviour
 
 			if(team == Team.Team2)
 			{
-				StartCoroutine (InstantiateBallParticles (other.transform.position));
+				InstantiateBallParticles (other.transform.position);
 
 				matchManager.PointToTeam1 (1);
 				DestroyBall (other.gameObject);
@@ -71,13 +71,9 @@ public class GoalScript : MonoBehaviour
 		}
 	}
 
-	IEnumerator InstantiateBallParticles (Vector3 pos)
+	void InstantiateBallParticles (Vector3 pos)
 	{
-		GameObject temp = Instantiate (butParticles, pos, butParticles.transform.rotation) as GameObject;
-
-		yield return new WaitForSeconds (temp.GetComponent<ParticleSystem> ().duration);
-
-		Destroy (temp);
+		Instantiate (butParticles, pos, butParticles.transform.rotation);
 	}
 
 	void GoalVibration ()

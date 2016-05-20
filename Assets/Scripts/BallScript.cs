@@ -13,6 +13,9 @@ public class BallScript : MonoBehaviour
 	private Transform ballParticules;
 	private Rigidbody rb;
 
+
+	public bool checkTeam = true;
+
 	void Start ()
 	{
 		ballParticules = transform.GetChild (0).transform;
@@ -36,30 +39,48 @@ public class BallScript : MonoBehaviour
 		if(rb != null && rb.velocity.magnitude < speedLimitToFall)
 		{
 			rb.AddForce(new Vector3 (0, -gravityWhenNoVelocity, 0), ForceMode.Acceleration);
+
+			if(team != Team.None && checkTeam)
+			{
+				Debug.Log ("None");
+				team = Team.None;
+			}
 		}
 
+	}
+
+	public void CheckTeamVoid ()
+	{
+		StartCoroutine (CheckTeam ());
+	}
+
+	IEnumerator CheckTeam ()
+	{
+		checkTeam = false;
+
+		yield return new WaitForSeconds (0.1f);
+
+		checkTeam = true;
 	}
 
 	void OnCollisionEnter (Collision collision)
 	{
-		if(collision.gameObject.tag != "Player")
-			gameObject.tag = "Ball";
-
-		if(gameObject.tag == "ThrownBall" && collision.gameObject.tag == "Player" && collision.gameObject.GetComponent<PlayerScript>().team != team)
+		if (collision.gameObject.tag == "Player")
 		{
-			collision.gameObject.GetComponent<PlayerScript>().StunVoid ();
+			//Debug.Log ("Touched Player");
+		}
+
+		if(collision.gameObject.tag != "Player")
+		{
+			gameObject.tag = "Ball";
 		}
 
 		if(rb != null && rb.velocity.magnitude > speedLimitToFall)
-			StartCoroutine (ParticulesImpact (collision.contacts[0].point));
+			ParticulesImpact (collision.contacts[0].point);
 	}
 
-	IEnumerator ParticulesImpact (Vector3 pos)
+	void ParticulesImpact (Vector3 pos)
 	{
-		GameObject particuleClone = Instantiate(ballImpactParticules, pos, ballImpactParticules.transform.rotation) as GameObject;
-
-		yield return new WaitForSeconds(ballImpactParticules.GetComponent<ParticleSystem>().duration);
-
-		Destroy (particuleClone);
+		Instantiate(ballImpactParticules, pos, ballImpactParticules.transform.rotation);
 	}
 }
