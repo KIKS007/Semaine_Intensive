@@ -132,6 +132,8 @@ public class PlayerScript : MonoBehaviour
 
 	private GameObject lastHoldBall;
 
+	private MatchManager matchManager;
+
 	// Use this for initialization
 	void Start () 
 	{
@@ -140,6 +142,7 @@ public class PlayerScript : MonoBehaviour
 		distToGround = GetComponent<Collider> ().bounds.extents.y;
 		screenShake = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraScreenShake>();
 		vibration = GameObject.FindGameObjectWithTag("VibrationManager").GetComponent<VibrationManager>();
+		matchManager = GameObject.FindGameObjectWithTag ("MatchManager").GetComponent<MatchManager> ();
 	}
 	
 	// Update is called once per frame
@@ -395,6 +398,7 @@ public class PlayerScript : MonoBehaviour
 			OnThrow ();
 
 		ThrowParticules ();
+		StopCoroutine (ForgetBall ());
 		StartCoroutine (ForgetBall ());
 
 		vibration.VibrateBothMotors(playerId, throwVibration.x, throwVibration.z, throwVibration.y, throwVibration.z);
@@ -419,12 +423,7 @@ public class PlayerScript : MonoBehaviour
 
 		holdBallTemp.GetComponent<Collider> ().enabled = true;
 
-		yield return new WaitForSeconds(0.06f);
-
-		if(holdBallTemp != null)
-		{
-			//holdBallTemp.layer = 0;
-		}
+		yield return null;
 	}
 
 	void ThrowParticules ()
@@ -434,7 +433,7 @@ public class PlayerScript : MonoBehaviour
 
 	IEnumerator ForgetBall ()
 	{
-		yield return new WaitForSeconds (0.1f);
+		yield return new WaitForSeconds (0.25f);
 
 		if(lastHoldBall != null)
 			Physics.IgnoreCollision (gameObject.GetComponent<Collider> (), lastHoldBall.GetComponent<Collider> (), false);
@@ -450,11 +449,6 @@ public class PlayerScript : MonoBehaviour
 		AddAndRemoveRigibody (true);
 		StartCoroutine (ForgetBall ());
 
-		//holdBall.GetComponent<Rigidbody> ().AddForce (throwDirection * throwForceTemp, ForceMode.VelocityChange);
-		//Debug.Log(throwForceTemp);
-
-		//holdBall.GetComponent<Renderer>().material.color = Color.white;
-
 		GameObject holdBallTemp = holdBall;
 		holdBall = null;
 
@@ -466,12 +460,11 @@ public class PlayerScript : MonoBehaviour
 		yield return new WaitForSeconds(0.06f);
 
 		holdBallTemp.tag = "Ball";
-		//holdBallTemp.layer = 0;
 	}
 
 	public void StunVoid ()
 	{
-		Debug.Log("Stun");
+		//Debug.Log("Stun");
 
 		if(holdingBall)
 			StartCoroutine (Release ());
@@ -565,14 +558,15 @@ public class PlayerScript : MonoBehaviour
 		yield return null;
 	}
 
-	void OnCollisionEnter(Collision collision)
+	void OnCollisionStay(Collision collision)
 	{
 		if(dashState == DashState.Dashing && collision.gameObject.tag == "Player")
 		{
-			if(collision.gameObject.GetComponent<PlayerScript>())
-				collision.gameObject.GetComponent<PlayerScript>().StunVoid();
-
-			StunParticules (collision.gameObject.GetComponent<PlayerScript>().team, collision.contacts[0].point);
+			if(collision.gameObject.GetComponent<PlayerScript> ().stunned == false)
+			{
+				collision.gameObject.GetComponent<PlayerScript> ().StunVoid ();
+				StunParticules (collision.gameObject.GetComponent<PlayerScript>().team, collision.contacts[0].point);
+			}
 		}
 	}
 
@@ -588,17 +582,16 @@ public class PlayerScript : MonoBehaviour
 		}
 	}
 
-	void OnTriggerEnter (Collider other)
+	void OnTriggerStay (Collider other)
 	{
 		if(!stunned)
 		{
 
 			if(other.tag == "ThrownBall" && other.GetComponent<BallScript>().team != Team.None && other.GetComponent<BallScript>().team != team )
 			{
-				//Debug.Log (other.GetComponent<BallScript> ().team);
-
 				other.GetComponent<BallScript> ().team = Team.None;
-				StunVoid ();
+				StartCoroutine (Release ());
+				matchManager.DestroyPlayerVoid (gameObject, team);
 			}
 
 			else if(other.gameObject != lastHoldBall)

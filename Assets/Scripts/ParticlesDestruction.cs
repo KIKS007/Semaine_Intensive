@@ -12,7 +12,10 @@ public class ParticlesDestruction : MonoBehaviour
 	
 	IEnumerator WaitBeforeDestroy ()
 	{
-		yield return new WaitForSeconds (GetComponent<ParticleSystem> ().duration);
+		ParticleSystem particles = GetComponent<ParticleSystem> ();
+
+		yield return new WaitUntil (()=> particles.isStopped);
+
 		Destroy (gameObject);
 	}
 }

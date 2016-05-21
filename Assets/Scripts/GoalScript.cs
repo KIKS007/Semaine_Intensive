@@ -37,25 +37,25 @@ public class GoalScript : MonoBehaviour
 		originalBloom = lights[0].GetFloat("_Bloom");
 	}
 
-	void OnTriggerEnter (Collider other)
+	void OnCollisionEnter (Collision collision)
 	{
-		if(other.tag == "ThrownBall" && other.GetComponent<BallScript>().team != Team.None || other.tag == "Ball" && other.GetComponent<BallScript>().team != Team.None )
+		if(collision.gameObject.tag == "ThrownBall" && collision.gameObject.GetComponent<BallScript>().team != Team.None || collision.gameObject.tag == "Ball" && collision.gameObject.GetComponent<BallScript>().team != Team.None )
 		{
 			if(team == Team.Team1)
 			{
-				InstantiateBallParticles (other.transform.position);
+				InstantiateBallParticles (collision.transform.position);
 
 				matchManager.PointToTeam2 (1);
-				DestroyBall (other.gameObject);
+				DestroyBall (collision.gameObject);
 				matchManager.InstantiateBall ();
 			}
 
 			if(team == Team.Team2)
 			{
-				InstantiateBallParticles (other.transform.position);
+				InstantiateBallParticles (collision.transform.position);
 
 				matchManager.PointToTeam1 (1);
-				DestroyBall (other.gameObject);
+				DestroyBall (collision.gameObject);
 				matchManager.InstantiateBall ();
 	
 			}
@@ -78,10 +78,10 @@ public class GoalScript : MonoBehaviour
 
 	void GoalVibration ()
 	{
-		vibration.VibrateBothMotors (0, goalVibrationForce.x, goalVibrationForce.z, goalVibrationForce.y, goalVibrationForce.z, 0.5f, 0.5f);
-		vibration.VibrateBothMotors (1, goalVibrationForce.x, goalVibrationForce.z, goalVibrationForce.y, goalVibrationForce.z, 0.5f, 0.5f);
-		vibration.VibrateBothMotors (2, goalVibrationForce.x, goalVibrationForce.z, goalVibrationForce.y, goalVibrationForce.z, 0.5f, 0.5f);
-		vibration.VibrateBothMotors (3, goalVibrationForce.x, goalVibrationForce.z, goalVibrationForce.y, goalVibrationForce.z, 0.5f, 0.5f);
+		vibration.VibrateBothMotors (0, goalVibrationForce.x, goalVibrationForce.z, goalVibrationForce.y, goalVibrationForce.z);
+		vibration.VibrateBothMotors (1, goalVibrationForce.x, goalVibrationForce.z, goalVibrationForce.y, goalVibrationForce.z);
+		vibration.VibrateBothMotors (2, goalVibrationForce.x, goalVibrationForce.z, goalVibrationForce.y, goalVibrationForce.z);
+		vibration.VibrateBothMotors (3, goalVibrationForce.x, goalVibrationForce.z, goalVibrationForce.y, goalVibrationForce.z);
 	}
 
 	IEnumerator GoalLights ()

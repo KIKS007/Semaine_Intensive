@@ -8,6 +8,7 @@ public class ParticulesScript : MonoBehaviour
 	public GameObject dashParticles;
 	public GameObject hitParticlesTeam1;
 	public GameObject hitParticlesTeam2;
+	public GameObject onGroundParticles;
 
 	private PlayerScript playerScript;
 
@@ -19,32 +20,36 @@ public class ParticulesScript : MonoBehaviour
 	void Start () 
 	{
 		playerScript = GetComponent<PlayerScript> ();
+		playerScript.OnGround = Ground;
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
 		if (playerScript.stunned == true && stunParticlesClones == null)
-			StartCoroutine (Stun ());
+			Stun ();
 
 		if(playerScript.dashState == DashState.Dashing && dashParticlesClones == null)
-			StartCoroutine (Dash ());
+			Dash ();
 
 	}
 
-	IEnumerator Stun ()
+	void Ground ()
+	{
+		Vector3 pos = transform.position;
+		pos.y -= 0.8f;
+		Instantiate (onGroundParticles, pos, onGroundParticles.transform.rotation);
+	}
+
+	void Stun ()
 	{
 		Vector3 pos = transform.position;
 		pos.y += 1;
 		stunParticlesClones = Instantiate (stunParticlues, pos, stunParticlues.transform.rotation) as GameObject;
 		stunParticlesClones.transform.parent = transform;
-
-		yield return new WaitForSeconds (stunParticlesClones.GetComponent<ParticleSystem>().duration);
-
-		Destroy (stunParticlesClones);
 	}
 
-	IEnumerator Dash ()
+	void Dash ()
 	{
 		Vector3 pos = transform.position;
 		pos.y += 0.3f;
@@ -54,9 +59,5 @@ public class ParticulesScript : MonoBehaviour
 		Vector3 rot = dashParticlesClones.transform.localRotation.eulerAngles;
 		rot.y = playerScript.facingLeft ? 90 : -90;
 		dashParticlesClones.transform.localRotation = Quaternion.Euler(rot);
-
-		yield return new WaitForSeconds (dashParticlesClones.GetComponent<ParticleSystem>().duration);
-
-		Destroy (dashParticlesClones);
 	}
 }

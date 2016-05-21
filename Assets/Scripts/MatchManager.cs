@@ -18,6 +18,8 @@ public class MatchManager : MonoBehaviour
 	public GameObject team2DestructionParticles;
 	public float timeBeforeCreation;
 
+	private GameObject[] playerSpawnPoints = new GameObject[0];
+
 	[Header ("Points")]
 	public int pointsToWin;
 
@@ -30,6 +32,7 @@ public class MatchManager : MonoBehaviour
 	public bool switchGoals;
 	public GameObject ballPrefab;
 	public float sphereRadius;
+	public LayerMask sphereLayer;
 	public GameObject ballCreationParticles;
 	public Material[] ballMaterials = new Material[3];
 
@@ -81,6 +84,7 @@ public class MatchManager : MonoBehaviour
 		team2points = 0;		
 
 		ballSpawnPoints = GameObject.FindGameObjectsWithTag("BallSpawn");
+		playerSpawnPoints = GameObject.FindGameObjectsWithTag("PlayerSpawn");
 
 		if (switchGoals)
 			SetFirstGoals ();
@@ -125,7 +129,7 @@ public class MatchManager : MonoBehaviour
 
 		do
 			randomPos = ballSpawnPoints[Random.Range(0, ballSpawnPoints.Length)].transform.position;
-		while(Physics.CheckSphere (randomPos, sphereRadius));
+		while(Physics.CheckSphere (randomPos, sphereRadius, sphereLayer));
 
 		GameObject ballClone = Instantiate (ballPrefab, randomPos, ballPrefab.transform.rotation) as GameObject;
 		ballClone.GetComponent<MeshRenderer>().material = ballMaterials [Random.Range(0, ballMaterials.Length)];
@@ -142,20 +146,27 @@ public class MatchManager : MonoBehaviour
 	IEnumerator DestroyPlayer (GameObject player, Team team)
 	{
 		if(team == Team.Team1)
-			Instantiate (team1DestructionParticles, player.transform.position, team1DestructionParticles.transform.transform.rotation);
+			Instantiate (team1DestructionParticles, player.transform.position, team1DestructionParticles.transform.rotation);
 		else
-			Instantiate (team2DestructionParticles, player.transform.position, team2DestructionParticles.transform.transform.rotation);
+			Instantiate (team2DestructionParticles, player.transform.position, team2DestructionParticles.transform.rotation);
 
 		player.SetActive (false);
 
 		yield return new WaitForSeconds (timeBeforeCreation);
 
+		Vector3 randomPos = new Vector3 ();
+
+		do
+			randomPos = playerSpawnPoints[Random.Range(0, playerSpawnPoints.Length)].transform.position;
+		while(Physics.CheckSphere (randomPos, sphereRadius, sphereLayer));
+
 		if(team == Team.Team1)
-			Instantiate (team1ApparitionParticles, player.transform.position, team1ApparitionParticles.transform.transform.rotation);
+			Instantiate (team1ApparitionParticles, new Vector3(randomPos.x, randomPos.y + 1, randomPos.z), team1ApparitionParticles.transform.rotation);
 		else
-			Instantiate (team2ApparitionParticles, player.transform.position, team2ApparitionParticles.transform.transform.rotation);
+			Instantiate (team2ApparitionParticles, new Vector3(randomPos.x, randomPos.y + 1, randomPos.z), team2ApparitionParticles.transform.rotation);
 
 		yield return new WaitForSeconds (0.5f);
+		player.transform.position = randomPos;
 		player.SetActive (true);
 
 	}

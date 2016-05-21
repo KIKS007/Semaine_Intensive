@@ -42,7 +42,7 @@ public class BallScript : MonoBehaviour
 
 			if(team != Team.None && checkTeam)
 			{
-				Debug.Log ("None");
+				//Debug.Log ("None");
 				team = Team.None;
 			}
 		}
