@@ -120,6 +120,7 @@ public class PlayerScript : MonoBehaviour
 	public Vector3 dashVibration;
 	public Vector3 stunVibration;
 	public Vector3 throwVibration;
+	public Vector3 destroyVibration;
 
 	private VibrationManager vibration;
 
@@ -130,7 +131,7 @@ public class PlayerScript : MonoBehaviour
 	public bool stunned = false;
 	public bool passingThrough = false;
 
-	private GameObject lastHoldBall;
+	public GameObject lastHoldBall;
 
 	private MatchManager matchManager;
 
@@ -433,12 +434,16 @@ public class PlayerScript : MonoBehaviour
 
 	IEnumerator ForgetBall ()
 	{
-		yield return new WaitForSeconds (0.25f);
+		yield return new WaitForSeconds (0.15f);
 
-		if(lastHoldBall != null)
-			Physics.IgnoreCollision (gameObject.GetComponent<Collider> (), lastHoldBall.GetComponent<Collider> (), false);
-		
-		lastHoldBall = null;
+		if(!holdingBall)
+		{
+			if(lastHoldBall != null)
+				Physics.IgnoreCollision (gameObject.GetComponent<Collider> (), lastHoldBall.GetComponent<Collider> (), false);
+
+			lastHoldBall = null;
+		}
+
 	}
 
 	IEnumerator Release ()
@@ -589,9 +594,23 @@ public class PlayerScript : MonoBehaviour
 
 			if(other.tag == "ThrownBall" && other.GetComponent<BallScript>().team != Team.None && other.GetComponent<BallScript>().team != team )
 			{
-				other.GetComponent<BallScript> ().team = Team.None;
-				StartCoroutine (Release ());
-				matchManager.DestroyPlayerVoid (gameObject, team);
+				Vector3 direction = other.transform.position - transform.position;
+				RaycastHit objectHit;
+
+				if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Plateformes" && objectHit.collider.tag != "Player")
+				{
+					other.GetComponent<BallScript> ().team = Team.None;
+
+					if(holdingBall)
+						StartCoroutine (Release ());
+
+					StopCoroutine (ForgetBall ());
+					lastHoldBall = null;
+
+					matchManager.DestroyPlayerVoid (gameObject, team);
+
+					vibration.VibrateBothMotors(playerId, destroyVibration.x, destroyVibration.z, destroyVibration.y, destroyVibration.z);
+				}
 			}
 
 			else if(other.gameObject != lastHoldBall)

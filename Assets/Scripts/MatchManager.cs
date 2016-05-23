@@ -40,7 +40,8 @@ public class MatchManager : MonoBehaviour
 
 	[Header ("Switching Goals")]
 	public Transform goalsParents;
-	public GameObject[] changingGoals = new GameObject[12];
+	public GameObject[] team1ChangingGoals = new GameObject[5];
+	public GameObject[] team2ChangingGoals = new GameObject[5];
 	public GameObject team1GoalPrefab;
 	public GameObject team2GoalPrefab;
 
@@ -55,10 +56,12 @@ public class MatchManager : MonoBehaviour
 
 	private bool gameEnded = false;
 
+	private int randomInt;
+
 	// Use this for initialization
 	void Awake () 
 	{
-		switch(ReInput.controllers.GetControllerCount(ControllerType.Joystick))
+		/*switch(ReInput.controllers.GetControllerCount(ControllerType.Joystick))
 		{
 		case 1:
 			player1.SetActive(true);
@@ -78,7 +81,7 @@ public class MatchManager : MonoBehaviour
 			player3.SetActive(true);
 			player4.SetActive(true);
 			break;
-		}
+		}*/
 
 		team1points = 0;
 		team2points = 0;		
@@ -178,49 +181,43 @@ public class MatchManager : MonoBehaviour
 
 	void SetFirstGoals ()
 	{
-		for(int i = 0; i < changingGoals.Length; i++)
+		for(int i = 0; i < team1ChangingGoals.Length; i++)
 		{
-			changingGoals [i].SetActive (false);
+			team1ChangingGoals [i].SetActive (false);
+			team2ChangingGoals [i].SetActive (false);
 		}
 
-		GameObject goal1 = changingGoals [Random.Range (0, changingGoals.Length)];
-		GameObject goal2;
+		randomInt = Random.Range (0, team1ChangingGoals.Length);
 
-		do
-			goal2 = changingGoals [Random.Range (0, changingGoals.Length)];
+		team1ChangingGoals [randomInt].SetActive(true);
+		team2ChangingGoals [randomInt].SetActive(true);
 
-		while (goal2 == goal1);
-
-		GameObject goal1Temp = Instantiate (team1GoalPrefab, goal1.transform.position, goal1.transform.rotation) as GameObject;
-		GameObject goal2Temp = Instantiate (team2GoalPrefab, goal2.transform.position, goal2.transform.rotation) as GameObject;
-
-		goal1Temp.transform.SetParent (goalsParents);
-		goal2Temp.transform.SetParent (goalsParents);
-
-		team1Goalenabled = goal1Temp;
-		team2Goalenabled = goal2Temp;
+		team1Goalenabled = team1ChangingGoals [randomInt];
+		team2Goalenabled = team2ChangingGoals [randomInt];
 	}
 
 	public void SwitchGoals (GameObject whichGoal)
 	{
-		Team team = whichGoal.GetComponent<GoalScript> ().team;
-		GameObject newGoal;
+		if(switchGoals)
+		{
+			team1ChangingGoals [randomInt].SetActive(false);
+			team2ChangingGoals [randomInt].SetActive(false);
 
-		do
-			newGoal = changingGoals [Random.Range (0, changingGoals.Length)];
-		
-		while (newGoal.transform.position == team1Goalenabled.transform.position || newGoal.transform.position == team2Goalenabled.transform.position);
+			int randomIntTemp;
 
+			do
+				randomIntTemp = Random.Range (0, team1ChangingGoals.Length);
 
-		GameObject goalTemp;
+			while (randomInt == randomIntTemp);
 
-		if (team == Team.Team1)
-			team1Goalenabled = goalTemp = Instantiate (team1GoalPrefab, newGoal.transform.position, newGoal.transform.rotation) as GameObject;
-		
-		else
-			team2Goalenabled = goalTemp = Instantiate (team2GoalPrefab, newGoal.transform.position, newGoal.transform.rotation) as GameObject;
+			randomInt = randomIntTemp;
 
-		goalTemp.transform.SetParent (goalsParents);
+			team1ChangingGoals [randomInt].SetActive(true);
+			team2ChangingGoals [randomInt].SetActive(true);
+
+			team1Goalenabled = team1ChangingGoals [randomInt];
+			team2Goalenabled = team2ChangingGoals [randomInt];
+		}
 	}
 
 	void GameEnded (int whichTeam)

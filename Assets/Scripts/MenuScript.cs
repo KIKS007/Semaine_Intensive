@@ -4,7 +4,7 @@ using Rewired;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-public class MainCanvas : MonoBehaviour 
+public class MenuScript : MonoBehaviour 
 {
 
 	public GameObject mainCanvas;
@@ -66,6 +66,6 @@ public class MainCanvas : MonoBehaviour
 
 	public void BeginGame ()
 	{
-		SceneManager.LoadScene("Level 2");
+		SceneManager.LoadScene("Level 3");
 	}
 }

@@ -62,7 +62,7 @@ public class GoalScript : MonoBehaviour
 
 			StartCoroutine (WaitAndDestroy ());
 
-			StartCoroutine (GoalLights ());
+			//StartCoroutine (GoalLights ());
 			screenShake.CameraShaking(screenShakeDuration, screenShakeForce);
 			GoalVibration ();
 
