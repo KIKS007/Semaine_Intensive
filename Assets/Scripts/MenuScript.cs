@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 
 public class MenuScript : MonoBehaviour 
 {
+	public GameObject gamepadsManager;
 
 	public GameObject mainCanvas;
 	public GameObject creditsCanvas;
@@ -66,6 +67,7 @@ public class MenuScript : MonoBehaviour
 
 	public void BeginGame ()
 	{
+		GlobalVariables.Instance.GameOver = false;
 		SceneManager.LoadScene("Level 3");
 	}
 }

@@ -138,7 +138,7 @@ public class PlayerScript : MonoBehaviour
 	// Use this for initialization
 	void Start () 
 	{
-		player = ReInput.players.GetPlayer(playerId);
+		GetPlayerId ();
 		rb = GetComponent<Rigidbody>();
 		distToGround = GetComponent<Collider> ().bounds.extents.y;
 		screenShake = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraScreenShake>();
@@ -220,6 +220,31 @@ public class PlayerScript : MonoBehaviour
 				StartCoroutine (Dash ());
 		}
 
+
+	}
+
+	void GetPlayerId ()
+	{
+		switch(gameObject.name)
+		{
+		case "Player 1":
+			playerId = GlobalVariables.Instance.Player1;
+			break;
+		case "Player 2":
+			playerId = GlobalVariables.Instance.Player2;
+			break;
+		case "Player 3":
+			playerId = GlobalVariables.Instance.Player3;
+			break;
+		case "Player 4":
+			playerId = GlobalVariables.Instance.Player4;
+			break;
+		}
+
+		if (playerId == -1)
+			gameObject.SetActive (false);
+		else
+			player = ReInput.players.GetPlayer(playerId);
 
 	}
 

@@ -2,118 +2,230 @@
 using System.Collections;
 using Rewired;
 using DG.Tweening;
+using UnityEngine.UI;
 
 public class PlayMenuScript : MonoBehaviour 
 {
+	public GameObject playButton;
+	public float playXMax;
+	public float playXMin;
 
-	public bool player1 = false;
-	public bool player2 = false;
-	public bool player3 = false;
-	public bool player4 = false;
+	public RectTransform[] playersText = new RectTransform[4];
+	public float[] xPositions = new float[5];
+	public int[] textInt = new int[4] {2, 2, 2, 2};
+	public float gapBetweenInputs;
+	public float movementDuration;
+	public Ease movementEase;
 
-	public float yMin;
-	public float yMax;
-	public float tweenDuration;
+	public Color enabledColor;
+	public Color disabledColor;
 
 	public Transform robot1;
 	public Transform robot2;
 	public Transform robot3;
 	public Transform robot4;
 
+	[HideInInspector]
+	public Player player1; // The Rewired Player
+	[HideInInspector]
+	public Player player2; // The Rewired Player
+	[HideInInspector]
+	public Player player3; // The Rewired Player
+	[HideInInspector]
+	public Player player4; // The Rewired Player
+
+	private bool[] playerCanMove = new bool[4] {true, true, true, true};
+
 	// Use this for initialization
 	void Start () 
 	{
-		robot1.DOMoveY(yMin, 0);
-		robot2.DOMoveY(yMin, 0);
-		robot3.DOMoveY(yMin, 0);
-		robot4.DOMoveY(yMin, 0);
+		player1 = ReInput.players.GetPlayer(0);
+		player2 = ReInput.players.GetPlayer(1);
+		player3 = ReInput.players.GetPlayer(2);
+		player4 = ReInput.players.GetPlayer(3);
+
+		playersText[0].anchoredPosition = new Vector2 (xPositions[2], playersText[0].anchoredPosition.y);
+		playersText[1].anchoredPosition = new Vector2 (xPositions[2], playersText[1].anchoredPosition.y);
+		playersText[2].anchoredPosition = new Vector2 (xPositions[2], playersText[2].anchoredPosition.y);
+		playersText[3].anchoredPosition = new Vector2 (xPositions[2], playersText[3].anchoredPosition.y);
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
-		if(ReInput.controllers.GetJoystick(0) != null && !player1)
-			Player1 (true);
+		GetInputs ();
 
-		if(ReInput.controllers.GetJoystick(0) == null && player1)
-			Player1 (false);
+		EnableTexts ();
+
+		CanPlay ();
+	}
+
+	void GetInputs ()
+	{
+		if (player1.GetAxis ("Movement_Horizontal") > 0 && playerCanMove[0])
+			StartCoroutine (Right (0));
+
+		if (player1.GetAxis ("Movement_Horizontal") < 0 && playerCanMove[0])
+			StartCoroutine (Left (0));
+
+		if (player2.GetAxis ("Movement_Horizontal") > 0 && playerCanMove[1])
+			StartCoroutine (Right (1));
+
+		if (player2.GetAxis ("Movement_Horizontal") < 0 && playerCanMove[1])
+			StartCoroutine (Left (1));
+
+		if (player3.GetAxis ("Movement_Horizontal") > 0 && playerCanMove[2])
+			StartCoroutine (Right (2));
+
+		if (player3.GetAxis ("Movement_Horizontal") < 0 && playerCanMove[2])
+			StartCoroutine (Left (2));
+
+		if (player4.GetAxis ("Movement_Horizontal") > 0 && playerCanMove[3])
+			StartCoroutine (Right (3));
+
+		if (player4.GetAxis ("Movement_Horizontal") < 0 && playerCanMove[3])
+			StartCoroutine (Left (3));
+	}
+
+	void EnableTexts ()
+	{
+		if (ReInput.controllers.GetJoystick (0) != null)
+			playersText[0].GetComponent<Text> ().color = enabledColor;
+		else
+			playersText[0].GetComponent<Text> ().color = disabledColor;
+
+		if (ReInput.controllers.GetJoystick (1) != null)
+			playersText[1].GetComponent<Text> ().color = enabledColor;
+		else
+			playersText[1].GetComponent<Text> ().color = disabledColor;
+
+		if (ReInput.controllers.GetJoystick (2) != null)
+			playersText[2].GetComponent<Text> ().color = enabledColor;
+		else
+			playersText[2].GetComponent<Text> ().color = disabledColor;
+
+		if (ReInput.controllers.GetJoystick (3) != null)
+			playersText[3].GetComponent<Text> ().color = enabledColor;
+		else
+			playersText[3].GetComponent<Text> ().color = disabledColor;
+	}
+
+	void CanPlay ()
+	{
+		int player1 = 0;
+		int player2 = 0;
+		int player3 = 0;
+		int player4 = 0;
+		int none = 0;
+
+		for(int i = 0; i < textInt.Length; i++)
+		{
+			switch(textInt[i])
+			{
+			case 0:
+				player1++;
+				break;
+			case 1:
+				player2++;
+				break;
+			case 3:
+				player3++;
+				break;
+			case 4:
+				player4++;
+				break;
+			case 2:
+				none++;
+				break;
+			}
+		}
+
+		if(player1 > 1 || player2 > 1 || player3 > 1 || player4 > 1 || none >= 3)
+		{
+			if(playButton.GetComponent<Button>().interactable == true)
+			{
+				playButton.GetComponent<Button> ().interactable = false;
+				playButton.GetComponent<RectTransform> ().DOAnchorPosY (playXMin, movementDuration).SetEase(movementEase);
+			}
+		}
+		else if(playButton.GetComponent<Button>().interactable == false)
+		{
+			playButton.GetComponent<Button> ().interactable = true;
+			playButton.GetComponent<RectTransform> ().DOAnchorPosY (playXMax, movementDuration).SetEase(movementEase);
+			playButton.GetComponent<Button> ().Select ();
+		}
+	}
+
+	IEnumerator Right (int whichPlayer)
+	{
+		playerCanMove [whichPlayer] = false;
+
+		if(textInt[whichPlayer] != 4)
+		{
+			playersText [whichPlayer].DOAnchorPosX(xPositions[ textInt[whichPlayer] + 1 ], movementDuration).SetEase(movementEase);
+
+			textInt [whichPlayer] += 1;
+
+			UpdateGamepads ();
+
+			yield return new WaitForSeconds(movementDuration);
+
+			yield return new WaitForSeconds(gapBetweenInputs);
+		}
 			
+		playerCanMove [whichPlayer] = true;
 
-		if(ReInput.controllers.GetJoystick(1) != null && !player1)
-			Player2 (true);
-
-		if(ReInput.controllers.GetJoystick(1) == null && player1)
-			Player2 (false);
-
-
-		if(ReInput.controllers.GetJoystick(2) != null && !player1)
-			Player3 (true);
-
-		if(ReInput.controllers.GetJoystick(2) == null && player1)
-			Player3 (false);
-
-
-		if(ReInput.controllers.GetJoystick(3) != null && !player1)
-			Player4 (true);
-
-		if(ReInput.controllers.GetJoystick(3) == null && player1)
-			Player4 (false);
-
+		yield return null;
 	}
 
-	void Player1 (bool ON)
+	IEnumerator Left (int whichPlayer)
 	{
-		if(ON)
+		playerCanMove [whichPlayer] = false;
+
+		if(textInt[whichPlayer] != 0)
 		{
-			robot1.DOMoveY(yMax, tweenDuration);
-			player1 = true;
+			playersText [whichPlayer].DOAnchorPosX(xPositions[ textInt[whichPlayer] - 1 ], movementDuration).SetEase(movementEase);
+
+			textInt [whichPlayer] -= 1;
+
+			UpdateGamepads ();
+
+			yield return new WaitForSeconds(movementDuration);
+
+			yield return new WaitForSeconds(gapBetweenInputs);
 		}
-		else
-		{
-			robot1.DOMoveY(yMin, tweenDuration);
-			player1 = false;
-		}
+			
+		playerCanMove [whichPlayer] = true;
+
+		yield return null;
 	}
 
-	void Player2 (bool ON)
+	void UpdateGamepads ()
 	{
-		if(ON)
-		{
-			robot2.DOMoveY(yMax, tweenDuration);
-			player2 = true;
-		}
-		else
-		{
-			robot2.DOMoveY(yMin, tweenDuration);
-			player2 = false;
-		}
-	}
+		GlobalVariables.Instance.Player1 = -1;
+		GlobalVariables.Instance.Player2 = -1;
+		GlobalVariables.Instance.Player3 = -1;
+		GlobalVariables.Instance.Player4 = -1;	
 
-	void Player3 (bool ON)
-	{
-		if(ON)
+		for(int i = 0; i < textInt.Length; i++)
 		{
-			robot3.DOMoveY(yMax, tweenDuration);
-			player3 = true;
+			switch(textInt[i])
+			{
+			case 0:
+				GlobalVariables.Instance.Player1 = i;
+				break;
+			case 1:
+				GlobalVariables.Instance.Player2 = i;
+				break;
+			case 3:
+				GlobalVariables.Instance.Player3 = i;
+				break;
+			case 4:
+				GlobalVariables.Instance.Player4 = i;
+				break;
+			}
 		}
-		else
-		{
-			robot3.DOMoveY(yMin, tweenDuration);
-			player3 = false;
-		}
-	}
 
-	void Player4 (bool ON)
-	{
-		if(ON)
-		{
-			robot4.DOMoveY(yMax, tweenDuration);
-			player4 = true;
-		}
-		else
-		{
-			robot4.DOMoveY(yMin, tweenDuration);
-			player4 = false;
-		}
+
 	}
 }

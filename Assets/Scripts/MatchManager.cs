@@ -61,27 +61,7 @@ public class MatchManager : MonoBehaviour
 	// Use this for initialization
 	void Awake () 
 	{
-		/*switch(ReInput.controllers.GetControllerCount(ControllerType.Joystick))
-		{
-		case 1:
-			player1.SetActive(true);
-			break;
-		case 2:
-			player1.SetActive(true);
-			player2.SetActive(true);
-			break;
-		case 3:
-			player1.SetActive(true);
-			player2.SetActive(true);
-			player3.SetActive(true);
-			break;
-		case 4:
-			player1.SetActive(true);
-			player2.SetActive(true);
-			player3.SetActive(true);
-			player4.SetActive(true);
-			break;
-		}*/
+		gameOver.SetActive (false);
 
 		team1points = 0;
 		team2points = 0;		
@@ -242,11 +222,18 @@ public class MatchManager : MonoBehaviour
 		team2Goalenabled.transform.GetChild (1).gameObject.SetActive (false);
 
 		menu.GetComponent<Button>().Select ();
+
+		GlobalVariables.Instance.GameOver = true;
 	}
 
 	public void Menu ()
 	{
 		SceneManager.LoadScene("Menu");
+	}
+
+	public void Restart ()
+	{
+		SceneManager.LoadScene("Level 3");
 	}
 
 	public void Quit ()

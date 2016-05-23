@@ -14,9 +14,12 @@ public class CameraMovement : MonoBehaviour
 
 	private Vector3 centerTargetPos = new Vector3 (0, 0, 0);
 
+	private Vector3 originaPos;
+
 	// Use this for initialization
 	void Start () 
 	{
+		originaPos = transform.position;
 		players = GameObject.FindGameObjectsWithTag("Player");
 	}
 	
@@ -28,7 +31,16 @@ public class CameraMovement : MonoBehaviour
 
 	void FixedUpdate ()
 	{
-		SetCameraPosition ();
+		if (GlobalVariables.Instance.GameOver == false)
+			SetCameraPosition ();
+
+		if(GlobalVariables.Instance.GameOver == true)
+		{
+			while (Vector3.Distance(transform.position, originaPos) > 0.01f)
+			{
+				transform.position = Vector3.Lerp (transform.position, originaPos, cameraLerp);
+			}
+		}
 	}
 
 	void FindCenterPoint ()
