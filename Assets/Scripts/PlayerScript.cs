@@ -16,7 +16,8 @@ public enum PlayerState
 {
 	OnGround,
 	InAir,
-	Falling
+	Falling,
+	Aiming
 }
 
 public enum JumpState
@@ -72,10 +73,12 @@ public class PlayerScript : MonoBehaviour
 
 
 	[Header ("Dash")]
+	public bool freeDash = false;
 	public float dashCooldown = 1;
 	public float dashForce = 4.5f;
 	public float dashDuration = 0.2f;
 	public Ease dashEase;
+	public float dashVdashForce;
 
 	private bool canDash = true;
 
@@ -97,10 +100,12 @@ public class PlayerScript : MonoBehaviour
 	private float angularDrag;
 	private bool useGravity;
 	private bool iskinematic;
-	private Vector3 throwDirection;
+	[HideInInspector]
+	public Vector3 throwDirection;
 	private float throwForceTemp;
 
 	private bool charging = false;
+	private bool aiming = false;
 
 	[Header ("Stun")]
 	public float stunDuration;
@@ -138,7 +143,8 @@ public class PlayerScript : MonoBehaviour
 	// Use this for initialization
 	void Start () 
 	{
-		GetPlayerId ();
+		//GetPlayerId ();
+		player = ReInput.players.GetPlayer(playerId);
 		rb = GetComponent<Rigidbody>();
 		distToGround = GetComponent<Collider> ().bounds.extents.y;
 		screenShake = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraScreenShake>();
@@ -149,10 +155,11 @@ public class PlayerScript : MonoBehaviour
 	// Update is called once per frame
 	void Update () 
 	{
-		if(!passingThrough)
+		if(!passingThrough && playerState != PlayerState.Aiming)
 			IsGrounded ();
 
-		CanPassThrough ();
+		if(playerState != PlayerState.Aiming)
+			CanPassThrough ();
 	
 		if(!stunned)
 			SetFacing();
@@ -170,9 +177,14 @@ public class PlayerScript : MonoBehaviour
 				ThrowForce ();
 			}*/
 
-			if(player.GetButtonDown("Throw"))
+			if(player.GetButton("Throw") && !aiming)
 			{
-				DOTween.Pause("ThrowForce");
+				Aim ();
+			}
+
+			if(player.GetButtonUp("Throw") && aiming)
+			{
+				//DOTween.Pause("ThrowForce");
 				StartCoroutine(Throw ());
 			}
 		}
@@ -203,7 +215,7 @@ public class PlayerScript : MonoBehaviour
 			rb.useGravity = false;
 
 
-		if(!stunned)
+		if(!stunned && playerState != PlayerState.Aiming)
 		{
 			if (dashState != DashState.Dashing)
 			{
@@ -220,24 +232,23 @@ public class PlayerScript : MonoBehaviour
 				StartCoroutine (Dash ());
 		}
 
-
 	}
 
 	void GetPlayerId ()
 	{
 		switch(gameObject.name)
 		{
-		case "Player 1":
-			playerId = GlobalVariables.Instance.Player1;
+		case "Character 1":
+			playerId = GlobalVariables.Instance.Character1;
 			break;
-		case "Player 2":
-			playerId = GlobalVariables.Instance.Player2;
+		case "Character 2":
+			playerId = GlobalVariables.Instance.Character2;
 			break;
-		case "Player 3":
-			playerId = GlobalVariables.Instance.Player3;
+		case "Character 3":
+			playerId = GlobalVariables.Instance.Character3;
 			break;
-		case "Player 4":
-			playerId = GlobalVariables.Instance.Player4;
+		case "Character 4":
+			playerId = GlobalVariables.Instance.Character4;
 			break;
 		}
 
@@ -356,17 +367,28 @@ public class PlayerScript : MonoBehaviour
 
 	IEnumerator Dash ()
 	{
-		float dashForceTemp = dashForce;
-
 		canDash = false;
 		dashState = DashState.Dashing;
 
 		vibration.VibrateBothMotors(playerId, dashVibration.x, dashVibration.z, dashVibration.y, dashVibration.z);
 
-		dashForceTemp = facingLeft ? -dashForce : dashForce;
+		if(!freeDash || throwDirection.magnitude == 0)
+		{
+			float dashForceTemp = dashForce;
+			dashForceTemp = facingLeft ? -dashForce : dashForce;
 
-		DOTween.To (() => dashForceTemp, x => dashForceTemp = x, 0, dashDuration).SetEase (dashEase).OnUpdate(
-			()=> rb.velocity = new Vector3(dashForceTemp, 0, rb.velocity.z));
+			DOTween.To (() => dashForceTemp, x => dashForceTemp = x, 0, dashDuration).SetEase (dashEase).SetId("Dash").OnUpdate(
+				()=> rb.velocity = new Vector3(dashForceTemp, 0, rb.velocity.z));
+		}
+		else
+		{
+			float dashForceTemp = dashForce;
+
+			DOTween.To (() => dashForceTemp, x => dashForceTemp = x, 0, dashDuration).SetEase (dashEase).SetId("Dash").OnUpdate(
+				()=> rb.velocity = throwDirection * dashForceTemp);
+		}
+
+
 
 		yield return new WaitForSeconds (dashDuration - 0.05f);
 
@@ -381,8 +403,9 @@ public class PlayerScript : MonoBehaviour
 		dashState = DashState.CanDash;
 	}
 
-	IEnumerator Catch ()
+	IEnumerator Catch (GameObject ball)
 	{
+		holdBall = ball;
 		lastHoldBall = holdBall;
 		Physics.IgnoreCollision (gameObject.GetComponent<Collider> (), lastHoldBall.GetComponent<Collider> ());
 
@@ -414,8 +437,18 @@ public class PlayerScript : MonoBehaviour
 		DOTween.To(() => throwForceTemp, x => throwForceTemp = x, throwForceMax, timeToMaxForce).SetId("ThrowForce");
 	}
 
+	void Aim ()
+	{
+		aiming = true;
+		playerState = PlayerState.Aiming;
+		gameObject.layer = 9;
+	}
+
 	IEnumerator Throw ()
 	{
+		aiming = false;
+		playerState = PlayerState.InAir;
+
 		holdBall.transform.SetParent (GameObject.FindGameObjectWithTag("BallsParent").transform);
 		holdBall.tag = "ThrownBall";
 		holdBall.GetComponent<BallScript> ().CheckTeamVoid ();
@@ -588,14 +621,29 @@ public class PlayerScript : MonoBehaviour
 		yield return null;
 	}
 
-	void OnCollisionStay(Collision collision)
+	void OnCollisionEnter(Collision collision)
 	{
 		if(dashState == DashState.Dashing && collision.gameObject.tag == "Player")
 		{
-			if(collision.gameObject.GetComponent<PlayerScript> ().stunned == false)
+			if(collision.gameObject.GetComponent<PlayerScript> ().stunned == false && collision.gameObject.GetComponent<PlayerScript> ().dashState != DashState.Dashing)
 			{
 				collision.gameObject.GetComponent<PlayerScript> ().StunVoid ();
 				StunParticules (collision.gameObject.GetComponent<PlayerScript>().team, collision.contacts[0].point);
+			}
+
+			if(collision.gameObject.GetComponent<PlayerScript> ().stunned == false && collision.gameObject.GetComponent<PlayerScript> ().dashState == DashState.Dashing)
+			{
+				//Debug.Log("Bite : " + gameObject.name);
+
+				Vector3 repulseThis = collision.transform.position - transform.position;
+				Vector3 repulseOther = transform.position - collision.transform.position;
+
+				DOTween.Pause("Dash");
+				StopCoroutine (Dash ());
+				//collision.gameObject.GetComponent<Rigidbody>().AddForce(repulseOther * dashVdashForce, ForceMode.Impulse);
+				gameObject.GetComponent<Rigidbody>().AddForce(repulseOther * dashVdashForce, ForceMode.Impulse);
+
+
 			}
 		}
 	}
@@ -614,20 +662,25 @@ public class PlayerScript : MonoBehaviour
 
 	void OnTriggerStay (Collider other)
 	{
-		if(!stunned)
-		{
+		Vector3 direction = other.transform.position - transform.position;
+		RaycastHit objectHit;
 
+		if(!stunned && Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Plateformes" && objectHit.collider.tag != "Player")
+		{
 			if(other.tag == "ThrownBall" && other.GetComponent<BallScript>().team != Team.None && other.GetComponent<BallScript>().team != team )
 			{
-				Vector3 direction = other.transform.position - transform.position;
-				RaycastHit objectHit;
-
-				if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Plateformes" && objectHit.collider.tag != "Player")
+				if(dashState == DashState.Dashing)
+				{
+					StartCoroutine (Catch (other.gameObject));
+				}
+				else
 				{
 					other.GetComponent<BallScript> ().team = Team.None;
 
 					if(holdingBall)
 						StartCoroutine (Release ());
+
+					playerState = PlayerState.OnGround;
 
 					StopCoroutine (ForgetBall ());
 					lastHoldBall = null;
@@ -642,30 +695,12 @@ public class PlayerScript : MonoBehaviour
 			{
 				if(other.tag == "Ball" && !holdingBall)
 				{
-					Vector3 direction = other.transform.position - transform.position;
-					RaycastHit objectHit;
-
-					if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Plateformes" && objectHit.collider.tag != "Player")
-					{
-						holdingBall = true;
-						holdBall = other.gameObject;
-						holdBall.GetComponent<BallScript>().team = team;
-						StartCoroutine (Catch ());
-					}
+					StartCoroutine (Catch (other.gameObject));
 				}
 
 				else if(other.tag == "ThrownBall" && !holdingBall && other.GetComponent<BallScript>().team == team)
 				{
-					Vector3 direction = other.transform.position - transform.position;
-					RaycastHit objectHit;
-
-					if(Physics.Raycast (transform.position, direction, out objectHit, 10) && objectHit.collider.tag != "Plateformes" && objectHit.collider.tag != "Player")
-					{
-						holdingBall = true;
-						holdBall = other.gameObject;
-						holdBall.GetComponent<BallScript>().team = team;
-						StartCoroutine (Catch ());
-					}
+					StartCoroutine (Catch (other.gameObject));	
 				}
 			}
 		}

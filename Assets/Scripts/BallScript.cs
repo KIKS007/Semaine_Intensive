@@ -67,7 +67,7 @@ public class BallScript : MonoBehaviour
 	{
 		if (collision.gameObject.tag == "Player")
 		{
-			Debug.Log ("Touched Player");
+			//Debug.Log ("Touched Player");
 		}
 
 		if(collision.gameObject.tag != "Player")

@@ -3,13 +3,19 @@ using System.Collections;
 using UnityEngine.UI;
 using Rewired;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class MatchManager : MonoBehaviour 
 {
-	public GameObject player1;
-	public GameObject player2;
-	public GameObject player3;
-	public GameObject player4;
+	public Transform[] playersTF = new Transform[4];
+
+	[Header ("Players Name")]
+	public float displayTime;
+	public float fadeDuration;
+	public float lerpText;
+	public Text[] playersNameText = new Text[4];
+	public Color[] charactersColor = new Color[4];
+	public bool following = true;
 
 	[Header ("Player Destruction")]
 	public GameObject team1ApparitionParticles;
@@ -71,6 +77,8 @@ public class MatchManager : MonoBehaviour
 
 		if (switchGoals)
 			SetFirstGoals ();
+
+		StartCoroutine (SetNamesToPlayers ());
 	}
 	
 	// Update is called once per frame
@@ -94,6 +102,86 @@ public class MatchManager : MonoBehaviour
 		team1Score.text = team1points.ToString ();
 
 		team2Score.text = team2points.ToString ();
+	}
+
+	IEnumerator SetNamesToPlayers ()
+	{
+		playersNameText[0].DOFade(0, 0);
+		playersNameText[1].DOFade(0, 0);
+		playersNameText[2].DOFade(0, 0);
+		playersNameText[3].DOFade(0, 0);
+
+		playersNameText[0].DOFade(1, fadeDuration);
+		playersNameText[1].DOFade(1, fadeDuration);
+		playersNameText[2].DOFade(1, fadeDuration);
+		playersNameText[3].DOFade(1, fadeDuration);
+
+		float timer = displayTime;
+
+		if(!GlobalVariables.Instance.Gamepad1Connected)
+			playersNameText[0].gameObject.SetActive(false);
+
+		if(!GlobalVariables.Instance.Gamepad2Connected)
+			playersNameText[1].gameObject.SetActive(false);
+
+		if(!GlobalVariables.Instance.Gamepad3Connected)
+			playersNameText[2].gameObject.SetActive(false);
+
+		if(!GlobalVariables.Instance.Gamepad4Connected)
+			playersNameText[3].gameObject.SetActive(false);
+
+
+		if(GlobalVariables.Instance.Character1 != -1)
+			playersNameText[GlobalVariables.Instance.Character1].color = charactersColor[0];
+
+		if(GlobalVariables.Instance.Character2 != -1)
+			playersNameText[GlobalVariables.Instance.Character2].color = charactersColor[1];
+
+		if(GlobalVariables.Instance.Character3 != -1)
+			playersNameText[GlobalVariables.Instance.Character3].color = charactersColor[2];
+
+		if(GlobalVariables.Instance.Character4 != -1)
+			playersNameText[GlobalVariables.Instance.Character4].color = charactersColor[3];
+
+		StartCoroutine (TextFollow ());
+
+		yield return new WaitForSeconds(displayTime);
+
+		playersNameText[0].DOFade(0, fadeDuration);
+		playersNameText[1].DOFade(0, fadeDuration);
+		playersNameText[2].DOFade(0, fadeDuration);
+		playersNameText[3].DOFade(0, fadeDuration);
+
+		yield return new WaitForSeconds(fadeDuration);
+
+		playersNameText[0].gameObject.SetActive(false);
+		playersNameText[1].gameObject.SetActive(false);
+		playersNameText[2].gameObject.SetActive(false);
+		playersNameText[3].gameObject.SetActive(false);
+
+		following = false;
+	}
+
+	IEnumerator TextFollow ()
+	{
+		while(following)
+		{
+			if(GlobalVariables.Instance.Character1 != -1)
+				playersNameText[GlobalVariables.Instance.Character1].transform.position = Vector3.Lerp(playersNameText[GlobalVariables.Instance.Character1].transform.position, playersTF[0].position, lerpText);
+
+			if(GlobalVariables.Instance.Character2 != -1)
+				playersNameText[GlobalVariables.Instance.Character2].transform.position = Vector3.Lerp(playersNameText[GlobalVariables.Instance.Character2].transform.position, playersTF[1].position, lerpText);
+
+			if(GlobalVariables.Instance.Character3 != -1)
+				playersNameText[GlobalVariables.Instance.Character3].transform.position = Vector3.Lerp(playersNameText[GlobalVariables.Instance.Character3].transform.position, playersTF[2].position, lerpText);
+
+			if(GlobalVariables.Instance.Character4 != -1)
+				playersNameText[GlobalVariables.Instance.Character4].transform.position = Vector3.Lerp(playersNameText[GlobalVariables.Instance.Character4].transform.position, playersTF[3].position, lerpText);
+		
+			yield return null;
+		}
+
+		yield return null;
 	}
 
 	public void PointToTeam1 (int howManyPoints)
@@ -144,11 +232,18 @@ public class MatchManager : MonoBehaviour
 		while(Physics.CheckSphere (randomPos, sphereRadius, sphereLayer));
 
 		if(team == Team.Team1)
-			Instantiate (team1ApparitionParticles, new Vector3(randomPos.x, randomPos.y + 1, randomPos.z), team1ApparitionParticles.transform.rotation);
+			Instantiate (team1ApparitionParticles, new Vector3(randomPos.x, randomPos.y, randomPos.z), team1ApparitionParticles.transform.rotation);
 		else
-			Instantiate (team2ApparitionParticles, new Vector3(randomPos.x, randomPos.y + 1, randomPos.z), team2ApparitionParticles.transform.rotation);
+			Instantiate (team2ApparitionParticles, new Vector3(randomPos.x, randomPos.y, randomPos.z), team2ApparitionParticles.transform.rotation);
 
-		yield return new WaitForSeconds (0.5f);
+		//yield return new WaitForSeconds (0.5f);
+
+		for(int i = 0; i < player.transform.childCount; i++)
+		{
+			if(player.transform.GetChild(i).tag == "Stun")
+				Destroy(player.transform.GetChild(i).gameObject);
+		}
+
 		player.transform.position = randomPos;
 		player.SetActive (true);
 

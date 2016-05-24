@@ -118,20 +118,27 @@ public class PlayMenuScript : MonoBehaviour
 		int player4 = 0;
 		int none = 0;
 
+		int team1 = 0;
+		int team2 = 0;
+
 		for(int i = 0; i < textInt.Length; i++)
 		{
 			switch(textInt[i])
 			{
 			case 0:
 				player1++;
+				team1++;
 				break;
 			case 1:
 				player2++;
+				team1++;
 				break;
 			case 3:
 				player3++;
+				team2++;
 				break;
 			case 4:
+				team2++;
 				player4++;
 				break;
 			case 2:
@@ -141,6 +148,17 @@ public class PlayMenuScript : MonoBehaviour
 		}
 
 		if(player1 > 1 || player2 > 1 || player3 > 1 || player4 > 1 || none >= 3)
+		{
+			if(playButton.GetComponent<Button>().interactable == true)
+			{
+				playButton.GetComponent<Button> ().interactable = false;
+				playButton.GetComponent<RectTransform> ().DOAnchorPosY (playXMin, movementDuration).SetEase(movementEase);
+			}
+		}
+		else if(team1 == 1 && team2 == 0 
+			|| team1 == 0 && team2 == 1
+			|| team1 == 2 && team2 == 0 
+			|| team1 == 0 && team2 == 2)
 		{
 			if(playButton.GetComponent<Button>().interactable == true)
 			{
@@ -202,30 +220,45 @@ public class PlayMenuScript : MonoBehaviour
 
 	void UpdateGamepads ()
 	{
-		GlobalVariables.Instance.Player1 = -1;
-		GlobalVariables.Instance.Player2 = -1;
-		GlobalVariables.Instance.Player3 = -1;
-		GlobalVariables.Instance.Player4 = -1;	
+		GlobalVariables.Instance.Character1 = -1;
+		GlobalVariables.Instance.Character2 = -1;
+		GlobalVariables.Instance.Character3 = -1;
+		GlobalVariables.Instance.Character4 = -1;	
 
 		for(int i = 0; i < textInt.Length; i++)
 		{
 			switch(textInt[i])
 			{
 			case 0:
-				GlobalVariables.Instance.Player1 = i;
+				GlobalVariables.Instance.Character1 = i;
 				break;
 			case 1:
-				GlobalVariables.Instance.Player2 = i;
+				GlobalVariables.Instance.Character2 = i;
 				break;
 			case 3:
-				GlobalVariables.Instance.Player3 = i;
+				GlobalVariables.Instance.Character3 = i;
 				break;
 			case 4:
-				GlobalVariables.Instance.Player4 = i;
+				GlobalVariables.Instance.Character4 = i;
 				break;
 			}
 		}
 
 
+	}
+
+	void OnDestroy ()
+	{
+		if(GlobalVariables.Instance.Character1 == 0	|| GlobalVariables.Instance.Character2 == 0	|| GlobalVariables.Instance.Character3 == 0	|| GlobalVariables.Instance.Character4 == 0)
+			GlobalVariables.Instance.Gamepad1Connected = true;
+
+		if(GlobalVariables.Instance.Character1 == 1	|| GlobalVariables.Instance.Character2 == 1	|| GlobalVariables.Instance.Character3 == 1	|| GlobalVariables.Instance.Character4 == 1)
+			GlobalVariables.Instance.Gamepad2Connected = true;
+
+		if(GlobalVariables.Instance.Character1 == 2	|| GlobalVariables.Instance.Character2 == 2	|| GlobalVariables.Instance.Character3 == 2	|| GlobalVariables.Instance.Character4 == 2)
+			GlobalVariables.Instance.Gamepad3Connected = true;
+
+		if(GlobalVariables.Instance.Character1 == 3	|| GlobalVariables.Instance.Character2 == 3	|| GlobalVariables.Instance.Character3 == 3	|| GlobalVariables.Instance.Character4 == 3)
+			GlobalVariables.Instance.Gamepad4Connected = true;
 	}
 }
