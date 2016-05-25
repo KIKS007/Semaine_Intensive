@@ -2,6 +2,7 @@
 using System.Collections;
 using DG.Tweening;
 using Rewired;
+using UnityEngine.UI;
 
 public class CursorScript : MonoBehaviour 
 {
@@ -14,6 +15,7 @@ public class CursorScript : MonoBehaviour
 	private PlayerScript playerScript;
 
 	private Quaternion rotationOffset;
+	private bool opaque = false;
 
 	// Use this for initialization
 	void Start () 
@@ -31,6 +33,23 @@ public class CursorScript : MonoBehaviour
 
 		FollowPlayer ();
 		SetRotation ();
+		SetOpacity ();
+	}
+
+	void SetOpacity ()
+	{
+		if(playerState == PlayerState.Aiming && !opaque)
+		{
+			opaque = true;
+			cursor.transform.GetChild(0).GetComponent<Image>().DOFade(1, 0.25f);
+		}
+
+		else if(playerState != PlayerState.Aiming && opaque)
+		{
+			opaque = false;
+			cursor.transform.GetChild(0).GetComponent<Image>().DOFade(0, 0.25f);
+		}
+
 	}
 
 	void FollowPlayer ()
@@ -42,12 +61,7 @@ public class CursorScript : MonoBehaviour
 	{
 		Vector3 direction;
 
-		if(playerScript.throwDirection.magnitude == 0)
-		{
-			direction = playerScript.facingLeft ? -Vector3.right : Vector3.right;
-		}
-
-		else
+		if(playerScript.throwDirection.magnitude != 0)
 		{
 			direction = playerScript.throwDirection.normalized;
 
