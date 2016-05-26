@@ -168,15 +168,6 @@ public class PlayerScript : MonoBehaviour
 
 		if(holdingBall && !stunned)
 		{
-			/*if(player.GetButton("Throw") && !charging)
-			{
-				charging = true;
-				//Debug.Log("Force Before " + throwForceTemp);
-				//DOTween.Pause("ThrowForce");
-				//DOTween.Complete("ThrowForce");
-				ThrowForce ();
-			}*/
-
 			if(player.GetButton("Throw") && !aiming)
 			{
 				Aim ();
@@ -294,11 +285,13 @@ public class PlayerScript : MonoBehaviour
 	{
 		if(Physics.Raycast(transform.position, -Vector3.up, distToGround + 0.01f))
 		{
+			if(jumpState != JumpState.CanJump)
+				jumpState = JumpState.CanJump;
+
 
 			if(playerState != PlayerState.OnGround)
 			{
 				playerState = PlayerState.OnGround;
-				jumpState = JumpState.CanJump;
 
 				if(OnGround != null)
 					OnGround ();
@@ -627,8 +620,17 @@ public class PlayerScript : MonoBehaviour
 		{
 			if(collision.gameObject.GetComponent<PlayerScript> ().stunned == false && collision.gameObject.GetComponent<PlayerScript> ().dashState != DashState.Dashing)
 			{
+				GameObject ball = null;
+
+				if(collision.gameObject.GetComponent<PlayerScript> ().holdingBall)
+					ball = collision.gameObject.GetComponent<PlayerScript> ().holdBall.gameObject;
+
 				collision.gameObject.GetComponent<PlayerScript> ().StunVoid ();
 				StunParticules (collision.gameObject.GetComponent<PlayerScript>().team, collision.contacts[0].point);
+
+				if(ball != null)
+					StartCoroutine (Catch (ball));
+
 			}
 
 			if(collision.gameObject.GetComponent<PlayerScript> ().stunned == false && collision.gameObject.GetComponent<PlayerScript> ().dashState == DashState.Dashing)
@@ -642,8 +644,6 @@ public class PlayerScript : MonoBehaviour
 				StopCoroutine (Dash ());
 				//collision.gameObject.GetComponent<Rigidbody>().AddForce(repulseOther * dashVdashForce, ForceMode.Impulse);
 				gameObject.GetComponent<Rigidbody>().AddForce(repulseOther * dashVdashForce, ForceMode.Impulse);
-
-
 			}
 		}
 	}

@@ -11,7 +11,8 @@ public class MenuScript : MonoBehaviour
 	public GameObject mainCanvas;
 	public GameObject creditsCanvas;
 	public GameObject playCanvas;
-	public GameObject howToCanvas;
+	public GameObject instructionsCanvas;
+	public GameObject controlsCanvas;
 
 	public GameObject playButton;
 	public GameObject beginButton;
@@ -22,7 +23,8 @@ public class MenuScript : MonoBehaviour
 		mainCanvas.SetActive(true);
 		creditsCanvas.SetActive(false);
 		playCanvas.SetActive(false);
-		howToCanvas.SetActive(false);
+		controlsCanvas.SetActive(false);
+		instructionsCanvas.SetActive(false);
 	}
 
 	void Update ()
@@ -32,7 +34,8 @@ public class MenuScript : MonoBehaviour
 			mainCanvas.SetActive(true);
 			creditsCanvas.SetActive(false);
 			playCanvas.SetActive(false);
-			howToCanvas.SetActive(false);
+			controlsCanvas.SetActive(false);
+			instructionsCanvas.SetActive(false);
 
 			playButton.GetComponent<Button>().Select ();
 		}
@@ -54,10 +57,16 @@ public class MenuScript : MonoBehaviour
 
 	}
 
-	public void HowToPlay ()
+	public void Instructions ()
 	{
 		mainCanvas.SetActive(false);
-		howToCanvas.SetActive(true);
+		instructionsCanvas.SetActive(true);
+	}
+
+	public void Controls ()
+	{
+		mainCanvas.SetActive(false);
+		controlsCanvas.SetActive(true);
 	}
 
 	public void Quit ()

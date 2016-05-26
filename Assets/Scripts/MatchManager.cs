@@ -4,10 +4,19 @@ using UnityEngine.UI;
 using Rewired;
 using UnityEngine.SceneManagement;
 using DG.Tweening;
+using Colorful;
 
 public class MatchManager : MonoBehaviour 
 {
 	public Transform[] playersTF = new Transform[4];
+
+	[Header ("Switching Goals")]
+	public bool switchGoals;
+	public int goalsNumber;
+	public Transform goalsParents;
+	public GameObject[] allGoals = new GameObject[0];
+
+	private GameObject[] goalsEnabled = new GameObject[0];
 
 	[Header ("Players Name")]
 	public float displayTime;
@@ -35,7 +44,6 @@ public class MatchManager : MonoBehaviour
 	public Text team2Score;
 
 	[Header ("Balls")]
-	public bool switchGoals;
 	public GameObject ballPrefab;
 	public float sphereRadius;
 	public LayerMask sphereLayer;
@@ -44,23 +52,24 @@ public class MatchManager : MonoBehaviour
 
 	private GameObject[] ballSpawnPoints = new GameObject[0];
 
-	[Header ("Switching Goals")]
-	public Transform goalsParents;
-	public GameObject[] team1ChangingGoals = new GameObject[5];
-	public GameObject[] team2ChangingGoals = new GameObject[5];
-	public GameObject team1GoalPrefab;
-	public GameObject team2GoalPrefab;
-
-	private GameObject team1Goalenabled;
-	private GameObject team2Goalenabled;
-
 	public GameObject game;
 	public GameObject gameOver;
 	public GameObject menu;
 	public GameObject textteam1;
 	public GameObject textteam2;
 
+	[Header ("Game Over")]
+	public Animator[] charactersAnim = new Animator[4];
+
 	private bool gameEnded = false;
+
+	[Header("Lights")]
+	public Material[] lights = new Material[0];
+	public float lightingDuration = 0.5f;
+	public float lightingGap = 0.8f;
+	public float bloomValue;
+	public float rgbSpliValue;
+	public float glitchDuration;
 
 	private int randomInt;
 
@@ -68,6 +77,8 @@ public class MatchManager : MonoBehaviour
 	void Awake () 
 	{
 		gameOver.SetActive (false);
+
+		goalsEnabled = new GameObject[goalsNumber];
 
 		team1points = 0;
 		team2points = 0;		
@@ -88,12 +99,12 @@ public class MatchManager : MonoBehaviour
 
 		if(team1points >= pointsToWin && !gameEnded)
 		{
-			GameEnded (1);
+			StartCoroutine(GameEnded (1));
 		}
 
 		if(team2points >= pointsToWin && !gameEnded)
 		{
-			GameEnded (2);
+			StartCoroutine(GameEnded (2));
 		}
 	}
 
@@ -187,11 +198,13 @@ public class MatchManager : MonoBehaviour
 	public void PointToTeam1 (int howManyPoints)
 	{
 		team1points += howManyPoints;
+		StartCoroutine (GoalGlitch ());
 	}
 
 	public void PointToTeam2 (int howManyPoints)
 	{
 		team2points += howManyPoints;
+		StartCoroutine (GoalGlitch ());
 	}
 
 	public void InstantiateBall ()
@@ -256,65 +269,151 @@ public class MatchManager : MonoBehaviour
 
 	void SetFirstGoals ()
 	{
-		for(int i = 0; i < team1ChangingGoals.Length; i++)
+		for(int i = 0; i < allGoals.Length; i++)
 		{
-			team1ChangingGoals [i].SetActive (false);
-			team2ChangingGoals [i].SetActive (false);
+			allGoals [i].SetActive (false);
 		}
 
-		randomInt = Random.Range (0, team1ChangingGoals.Length);
+		for(int i = 0; i < goalsNumber; i++)
+		{
+			do
+			{
+				randomInt = Random.Range (0, allGoals.Length);
+			}
+			while(allGoals [randomInt].activeSelf == true);
 
-		team1ChangingGoals [randomInt].SetActive(true);
-		team2ChangingGoals [randomInt].SetActive(true);
-
-		team1Goalenabled = team1ChangingGoals [randomInt];
-		team2Goalenabled = team2ChangingGoals [randomInt];
+			allGoals [randomInt].SetActive(true);
+			goalsEnabled [i] = allGoals [randomInt];
+		}
 	}
 
 	public void SwitchGoals (GameObject whichGoal)
 	{
 		if(switchGoals)
 		{
-			team1ChangingGoals [randomInt].SetActive(false);
-			team2ChangingGoals [randomInt].SetActive(false);
+			int whichIndex = 0;
 
-			int randomIntTemp;
-
+			for(int i = 0; i < goalsEnabled.Length; i++)
+			{
+				if (whichGoal == goalsEnabled [i])
+					whichIndex = i;
+			}
+				
 			do
-				randomIntTemp = Random.Range (0, team1ChangingGoals.Length);
+			{
+				randomInt = Random.Range (0, allGoals.Length);
+			}
+			while(allGoals [randomInt].activeSelf == true);
 
-			while (randomInt == randomIntTemp);
-
-			randomInt = randomIntTemp;
-
-			team1ChangingGoals [randomInt].SetActive(true);
-			team2ChangingGoals [randomInt].SetActive(true);
-
-			team1Goalenabled = team1ChangingGoals [randomInt];
-			team2Goalenabled = team2ChangingGoals [randomInt];
+			whichGoal.SetActive (false);
+			allGoals [randomInt].SetActive(true);
+			goalsEnabled [whichIndex] = allGoals [randomInt];
 		}
 	}
 
-	void GameEnded (int whichTeam)
+	IEnumerator GoalLights ()
+	{
+		Color tempColor = GetComponent<Renderer> ().material.GetColor ("_Color2");
+		Color originalColor = lights[0].GetColor("_Color2");
+		float originalBloom = lights[0].GetFloat("_Bloom");
+
+		for(int i = 0; i < lights.Length; i++)
+		{
+			lights[i].DOColor(tempColor, "_Color2", lightingDuration);
+			lights[i].DOFloat(bloomValue, "_Bloom", lightingDuration);
+		}
+
+		yield return new WaitForSeconds (lightingDuration);
+
+		for(int i = 0; i < lights.Length; i++)
+		{
+			lights[i].DOColor(originalColor, "_Color2", lightingDuration);
+			lights[i].DOFloat(originalBloom, "_Bloom", lightingDuration);
+		}
+
+
+
+		yield return new WaitForSeconds (lightingGap);
+
+		for(int i = 0; i < lights.Length; i++)
+		{
+			lights[i].DOColor(tempColor, "_Color2", lightingDuration);
+			lights[i].DOFloat(bloomValue, "_Bloom", lightingDuration);
+		}
+
+		yield return new WaitForSeconds (lightingDuration);
+
+		for(int i = 0; i < lights.Length; i++)
+		{
+			lights[i].DOColor(originalColor, "_Color2", lightingDuration);
+			lights[i].DOFloat(originalBloom, "_Bloom", lightingDuration);
+		}
+	}
+
+	IEnumerator GoalGlitch ()
+	{
+		GameObject cameraM = GameObject.FindGameObjectWithTag ("MainCamera");
+
+		cameraM.GetComponent<Glitch> ().enabled = true;
+		DOTween.To (() => cameraM.GetComponent<RGBSplit> ().Amount, x=> cameraM.GetComponent<RGBSplit> ().Amount = x, rgbSpliValue, 0.2f);
+
+		yield return new WaitForSeconds (glitchDuration);
+
+		GameObject.FindGameObjectWithTag ("MainCamera").GetComponent<Glitch> ().enabled = false;
+		DOTween.To (() => cameraM.GetComponent<RGBSplit> ().Amount, x=> cameraM.GetComponent<RGBSplit> ().Amount = x, 0, 0.5f);
+
+		yield return null;
+	}
+
+
+	IEnumerator GameEnded (int whichTeam)
 	{
 		gameEnded = true;
+
+		textteam1.SetActive(false);
+		textteam2.SetActive(false);
+		
+
+		for(int i = 0; i < goalsEnabled.Length; i++)
+		{
+			goalsEnabled [i].GetComponent<Renderer> ().enabled = false;
+			goalsEnabled [i].transform.GetChild (0).gameObject.SetActive (false);
+			goalsEnabled [i].transform.GetChild (1).gameObject.SetActive (false);
+			goalsEnabled [i].transform.GetChild (2).gameObject.SetActive (false);
+		}
+
+		yield return new WaitForSeconds (0.5f);
 
 		game.SetActive(false);
 		gameOver.SetActive(true);
 
+
 		if(whichTeam == 1)
+		{
 			textteam1.SetActive(true);
 
+			charactersAnim[0].SetTrigger("victoire");
+			charactersAnim[1].SetTrigger("victoire2");
+			charactersAnim [0].transform.DOLocalRotate (new Vector3 (0, 140, 0), 1);
+			charactersAnim [1].transform.DOLocalRotate (new Vector3 (0, 140, 0), 1);
+
+			charactersAnim[2].SetTrigger("defaite");
+			charactersAnim[3].SetTrigger("defaite");
+
+		}
+
 		if(whichTeam == 2)
+		{
 			textteam2.SetActive(true);
 
-		team1Goalenabled.GetComponent<Renderer> ().enabled = false;
-		team1Goalenabled.transform.GetChild (0).gameObject.SetActive (false);
-		team1Goalenabled.transform.GetChild (1).gameObject.SetActive (false);
+			charactersAnim[2].SetTrigger("victoire");
+			charactersAnim[3].SetTrigger("victoire2");
+			charactersAnim [2].transform.DOLocalRotate (new Vector3 (0, 140, 0), 1);
+			charactersAnim [3].transform.DOLocalRotate (new Vector3 (0, 140, 0), 1);
 
-		team2Goalenabled.GetComponent<Renderer> ().enabled = false;
-		team2Goalenabled.transform.GetChild (0).gameObject.SetActive (false);
-		team2Goalenabled.transform.GetChild (1).gameObject.SetActive (false);
+			charactersAnim[0].SetTrigger("defaite");
+			charactersAnim[1].SetTrigger("defaite");
+		}
 
 		menu.GetComponent<Button>().Select ();
 

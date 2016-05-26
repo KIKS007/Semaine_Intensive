@@ -10,6 +10,7 @@ public class PlayMenuScript : MonoBehaviour
 	public float playXMax;
 	public float playXMin;
 
+	public Color[] playersColors = new Color[4];
 	public RectTransform[] playersText = new RectTransform[4];
 	public float[] xPositions = new float[5];
 	public int[] textInt = new int[4] {2, 2, 2, 2};
@@ -48,14 +49,17 @@ public class PlayMenuScript : MonoBehaviour
 		playersText[1].anchoredPosition = new Vector2 (xPositions[2], playersText[1].anchoredPosition.y);
 		playersText[2].anchoredPosition = new Vector2 (xPositions[2], playersText[2].anchoredPosition.y);
 		playersText[3].anchoredPosition = new Vector2 (xPositions[2], playersText[3].anchoredPosition.y);
+
+		ReInput.ControllerConnectedEvent += EnableTexts;
+		ReInput.ControllerDisconnectedEvent += EnableTexts;
+
+		EnableTexts ();
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
 		GetInputs ();
-
-		EnableTexts ();
 
 		CanPlay ();
 	}
@@ -87,27 +91,128 @@ public class PlayMenuScript : MonoBehaviour
 			StartCoroutine (Left (3));
 	}
 
+	void EnableTexts (ControllerStatusChangedEventArgs arg)
+	{
+		if(ReInput.controllers.GetJoystick (0) == null && playersText[0].GetComponent<Text> ().color != disabledColor)
+		{
+			playersText [0].DOAnchorPosX(xPositions[2], movementDuration).SetEase(movementEase);
+			textInt [0] = 2;
+
+			playersText[0].GetComponent<Text> ().DOColor (disabledColor, movementDuration);
+			playersText[0].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+			playersText[0].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+		}
+
+		if(ReInput.controllers.GetJoystick (1) == null && playersText[1].GetComponent<Text> ().color != disabledColor)
+		{
+			playersText [1].DOAnchorPosX(xPositions[2], movementDuration).SetEase(movementEase);
+			textInt [1] = 2;
+
+			playersText[1].GetComponent<Text> ().DOColor (disabledColor, movementDuration);
+			playersText[1].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+			playersText[1].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+		}
+
+		if(ReInput.controllers.GetJoystick (2) == null && playersText[2].GetComponent<Text> ().color != disabledColor)
+		{
+			playersText [2].DOAnchorPosX(xPositions[2], movementDuration).SetEase(movementEase);
+			textInt [2] = 2;
+
+			playersText[2].GetComponent<Text> ().DOColor (disabledColor, movementDuration);
+			playersText[2].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+			playersText[2].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+		}
+
+		if(ReInput.controllers.GetJoystick (3) == null && playersText[3].GetComponent<Text> ().color != disabledColor)
+		{
+			playersText [3].DOAnchorPosX(xPositions[2], movementDuration).SetEase(movementEase);
+			textInt [3] = 2;
+
+			playersText[3].GetComponent<Text> ().DOColor (disabledColor, movementDuration);
+			playersText[3].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+			playersText[3].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+		}
+	}
+
 	void EnableTexts ()
 	{
-		if (ReInput.controllers.GetJoystick (0) != null)
-			playersText[0].GetComponent<Text> ().color = enabledColor;
-		else
-			playersText[0].GetComponent<Text> ().color = disabledColor;
+		if(ReInput.controllers.GetJoystick (0) == null && playersText[0].GetComponent<Text> ().color != disabledColor)
+		{
+			playersText [0].DOAnchorPosX(xPositions[2], movementDuration).SetEase(movementEase);
+			textInt [0] = 2;
 
-		if (ReInput.controllers.GetJoystick (1) != null)
-			playersText[1].GetComponent<Text> ().color = enabledColor;
-		else
-			playersText[1].GetComponent<Text> ().color = disabledColor;
+			playersText[0].GetComponent<Text> ().DOColor (disabledColor, movementDuration);
+			playersText[0].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+			playersText[0].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+		}
 
-		if (ReInput.controllers.GetJoystick (2) != null)
-			playersText[2].GetComponent<Text> ().color = enabledColor;
-		else
-			playersText[2].GetComponent<Text> ().color = disabledColor;
+		if(ReInput.controllers.GetJoystick (1) == null && playersText[1].GetComponent<Text> ().color != disabledColor)
+		{
+			playersText [1].DOAnchorPosX(xPositions[2], movementDuration).SetEase(movementEase);
+			textInt [1] = 2;
 
-		if (ReInput.controllers.GetJoystick (3) != null)
-			playersText[3].GetComponent<Text> ().color = enabledColor;
-		else
-			playersText[3].GetComponent<Text> ().color = disabledColor;
+			playersText[1].GetComponent<Text> ().DOColor (disabledColor, movementDuration);
+			playersText[1].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+			playersText[1].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+		}
+
+		if(ReInput.controllers.GetJoystick (2) == null && playersText[2].GetComponent<Text> ().color != disabledColor)
+		{
+			playersText [2].DOAnchorPosX(xPositions[2], movementDuration).SetEase(movementEase);
+			textInt [2] = 2;
+
+			playersText[2].GetComponent<Text> ().DOColor (disabledColor, movementDuration);
+			playersText[2].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+			playersText[2].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+		}
+
+		if(ReInput.controllers.GetJoystick (3) == null && playersText[3].GetComponent<Text> ().color != disabledColor)
+		{
+			playersText [3].DOAnchorPosX(xPositions[2], movementDuration).SetEase(movementEase);
+			textInt [3] = 2;
+
+			playersText[3].GetComponent<Text> ().DOColor (disabledColor, movementDuration);
+			playersText[3].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+			playersText[3].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
+		}
+	}
+
+	void SetColor ()
+	{
+		for(int i = 0; i < playersText.Length; i++)
+		{
+			if(ReInput.controllers.GetJoystick (i) != null)
+			{
+				switch(textInt[i])
+				{
+				case 0:
+					playersText [i].GetComponent<Text> ().DOColor (playersColors [0], movementDuration);
+					playersText[i].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (playersColors [0], movementDuration);
+					playersText[i].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (playersColors [0], movementDuration);
+					break;
+				case 1:
+					playersText[i].GetComponent<Text> ().color = playersColors[1];
+					playersText[i].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (playersColors [1], movementDuration);
+					playersText[i].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (playersColors [1], movementDuration);
+					break;
+				case 2:
+					playersText[i].GetComponent<Text> ().color = enabledColor;
+					playersText[i].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (enabledColor, movementDuration);
+					playersText[i].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (enabledColor, movementDuration);
+					break;
+				case 3:
+					playersText[i].GetComponent<Text> ().color = playersColors[2];
+					playersText[i].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (playersColors [2], movementDuration);
+					playersText[i].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (playersColors [2], movementDuration);
+					break;
+				case 4:
+					playersText[i].GetComponent<Text> ().color = playersColors[3];
+					playersText[i].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (playersColors [3], movementDuration);
+					playersText[i].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (playersColors [3], movementDuration);
+					break;
+				}
+			}
+		}
 	}
 
 	void CanPlay ()
@@ -186,6 +291,8 @@ public class PlayMenuScript : MonoBehaviour
 
 			UpdateGamepads ();
 
+			SetColor ();
+
 			yield return new WaitForSeconds(movementDuration);
 
 			yield return new WaitForSeconds(gapBetweenInputs);
@@ -207,6 +314,8 @@ public class PlayMenuScript : MonoBehaviour
 			textInt [whichPlayer] -= 1;
 
 			UpdateGamepads ();
+
+			SetColor ();
 
 			yield return new WaitForSeconds(movementDuration);
 

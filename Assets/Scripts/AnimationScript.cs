@@ -48,9 +48,17 @@ public class AnimationScript : MonoBehaviour
 			if(!anim.GetCurrentAnimatorStateInfo(0).IsName("atterissage") 
 				&& !anim.GetCurrentAnimatorStateInfo(0).IsName("tir")
 				&& !anim.GetCurrentAnimatorStateInfo(0).IsName("degats")
-				&& !anim.GetCurrentAnimatorStateInfo(0).IsName("iddle"))
+				&& !anim.GetCurrentAnimatorStateInfo(0).IsName("iddle")
+				&& !anim.GetCurrentAnimatorStateInfo(0).IsName("iddle2")
+				&& !anim.GetCurrentAnimatorStateInfo(0).IsName("tourne pour iddle")
+				&& !anim.GetCurrentAnimatorStateInfo(0).IsName("tourne pour iddle 2"))
 			{
-				anim.SetTrigger("iddle");
+				if(!playerScript.facingLeft)
+					anim.SetTrigger("iddle");
+
+				else
+					anim.SetTrigger("iddle2");
+
 			}
 		}
 		else if(player.GetAxis("Movement_Horizontal") != 0)
@@ -97,6 +105,12 @@ public class AnimationScript : MonoBehaviour
 			}
 
 
+		}
+
+		if(anim.GetCurrentAnimatorStateInfo(0).IsName("victoire") || anim.GetCurrentAnimatorStateInfo(0).IsName("victoire2") || anim.GetCurrentAnimatorStateInfo(0).IsName("defaite"))
+		{
+			Vector3 rot = transformToRotate.rotation.eulerAngles;
+			rot.y = 180;
 		}
 	}
 
