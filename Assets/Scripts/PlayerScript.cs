@@ -93,7 +93,8 @@ public class PlayerScript : MonoBehaviour
 	public float timeToMaxForce;
 	public GameObject throwParticules;
 
-	private GameObject holdBall;
+	[HideInInspector]
+	public GameObject holdBall;
 	private PhysicMaterial physicMat;
 	private float mass;
 	private float drag;
@@ -497,6 +498,11 @@ public class PlayerScript : MonoBehaviour
 
 	}
 
+	public void ReleaseVoid ()
+	{
+		StartCoroutine (Release ());
+	}
+
 	IEnumerator Release ()
 	{
 		holdBall.transform.SetParent (GameObject.FindGameObjectWithTag("BallsParent").transform);
@@ -515,7 +521,8 @@ public class PlayerScript : MonoBehaviour
 
 		yield return new WaitForSeconds(0.06f);
 
-		holdBallTemp.tag = "Ball";
+		if(holdBallTemp != null)
+			holdBallTemp.tag = "Ball";
 	}
 
 	public void StunVoid ()

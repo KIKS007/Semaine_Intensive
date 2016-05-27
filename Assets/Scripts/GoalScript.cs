@@ -57,7 +57,39 @@ public class GoalScript : MonoBehaviour
 				matchManager.SwitchGoals (gameObject);
 		}
 
-		if(other.gameObject.tag )
+		if(other.gameObject.tag == "Player" && other.gameObject.GetComponent<PlayerScript>().holdingBall == true)
+		{
+			if(other.gameObject.GetComponent<PlayerScript>().team == Team.Team1)
+			{
+				InstantiateBallParticles (other.transform.position);
+
+				GameObject ball = other.gameObject.GetComponent<PlayerScript>().holdBall;
+
+				other.gameObject.GetComponent<PlayerScript>().ReleaseVoid ();
+				matchManager.PointToTeam1 (1);
+				DestroyBall (ball);
+				matchManager.InstantiateBall ();
+			}
+
+			if(other.gameObject.GetComponent<PlayerScript>().team == Team.Team2)
+			{
+				InstantiateBallParticles (other.transform.position);
+
+				GameObject ball = other.gameObject.GetComponent<PlayerScript>().holdBall;
+
+				other.gameObject.GetComponent<PlayerScript>().ReleaseVoid ();
+				matchManager.PointToTeam2 (1);
+				DestroyBall (ball);
+				matchManager.InstantiateBall ();
+
+			}
+
+			screenShake.CameraShaking(screenShakeDuration, screenShakeForce);
+			GoalVibration ();
+
+			if(matchManager.switchGoals)
+				matchManager.SwitchGoals (gameObject);
+		}
 	}
 
 	void InstantiateBallParticles (Vector3 pos)
