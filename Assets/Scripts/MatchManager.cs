@@ -37,11 +37,16 @@ public class MatchManager : MonoBehaviour
 
 	[Header ("Points")]
 	public int pointsToWin;
-
 	public int team1points;
 	public int team2points;
 	public Text team1Score;
 	public Text team2Score;
+	public int fontSize;
+	public float punchDuration;
+	public float resetDuration;
+	public float timeBeforeReset;
+	public Ease punchEase;
+	public Ease resetEase;
 
 	[Header ("Balls")]
 	public GameObject ballPrefab;
@@ -199,13 +204,33 @@ public class MatchManager : MonoBehaviour
 	{
 		team1points += howManyPoints;
 		StartCoroutine (GoalGlitch ());
+		DOTween.Pause("Punch");
+		StartCoroutine (PunchTextScale (team1Score.GetComponent<Text>()));
 	}
 
 	public void PointToTeam2 (int howManyPoints)
 	{
 		team2points += howManyPoints;
 		StartCoroutine (GoalGlitch ());
+		DOTween.Pause("Punch");
+		StartCoroutine (PunchTextScale (team2Score.GetComponent<Text>()));
 	}
+
+
+	IEnumerator PunchTextScale (Text text)
+	{
+		yield return new WaitForSeconds (1);
+
+		int fontSizeOriginal = text.fontSize;
+
+		DOTween.To(()=> text.fontSize, x=> text.fontSize = x, fontSize, punchDuration).SetEase(punchEase).SetId("Punch");
+
+		yield return new WaitForSeconds (punchDuration);
+		yield return new WaitForSeconds (timeBeforeReset);
+
+		DOTween.To(()=> text.fontSize, x=> text.fontSize = x, fontSizeOriginal, resetDuration).SetEase(resetEase).SetId("Punch");
+	}
+
 
 	public void InstantiateBall ()
 	{
@@ -414,6 +439,19 @@ public class MatchManager : MonoBehaviour
 			charactersAnim[0].SetTrigger("defaite");
 			charactersAnim[1].SetTrigger("defaite");
 		}
+
+		if(GlobalVariables.Instance.Character1 == -1)
+			charactersAnim[0].gameObject.SetActive(false);
+
+		if(GlobalVariables.Instance.Character2 == -1)
+			charactersAnim[1].gameObject.SetActive(false);
+
+		if(GlobalVariables.Instance.Character3 == -1)
+			charactersAnim[2].gameObject.SetActive(false);
+
+		if(GlobalVariables.Instance.Character4 == -1)
+			charactersAnim[3].gameObject.SetActive(false);
+
 
 		menu.GetComponent<Button>().Select ();
 
