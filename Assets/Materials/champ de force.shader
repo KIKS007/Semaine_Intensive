@@ -60,10 +60,10 @@ Shader "Shader Forge/champ de force" {
             float4 frag(VertexOutput i) : COLOR {
 ////// Lighting:
 ////// Emissive:
-                float4 node_3410 = _Time + _TimeEditor;
-                float2 node_265 = ((i.uv0*_node_1728)+node_3410.g*float2(-0.2,-0.2));
+                float4 node_626 = _Time + _TimeEditor;
+                float2 node_265 = ((i.uv0*_node_1728)+node_626.g*float2(-0.2,-0.2));
                 float4 _node_7356_var = tex2D(_node_7356,TRANSFORM_TEX(node_265, _node_7356));
-                float2 node_8146 = ((i.uv0*_node_1728_copy)+node_3410.g*float2(0.3,0.3));
+                float2 node_8146 = ((i.uv0*_node_1728_copy)+node_626.g*float2(0.3,0.3));
                 float4 _node_7356_copy_var = tex2D(_node_7356_copy,TRANSFORM_TEX(node_8146, _node_7356_copy));
                 float4 _node_3736_var = tex2D(_node_3736,TRANSFORM_TEX(i.uv0, _node_3736));
                 float3 node_1100 = (_node_7356_var.rgb*_node_7356_copy_var.rgb*_node_3736_var.r);
