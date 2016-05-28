@@ -33,6 +33,11 @@ public class MenuScript : MonoBehaviour
 		playCanvas.SetActive(false);
 		controlsCanvas.SetActive(false);
 		instructionsCanvas.SetActive(false);
+
+		GlobalVariables.Instance.Character1 = -1;
+		GlobalVariables.Instance.Character2 = -1;
+		GlobalVariables.Instance.Character3 = -1;
+		GlobalVariables.Instance.Character4 = -1;
 	}
 
 	void Update ()

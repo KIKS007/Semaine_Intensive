@@ -93,10 +93,6 @@ public class MatchManager : MonoBehaviour
 		gameOver.SetActive (false);
 
 		MasterAudio.PlaySound ("INTRO_MATCH");
-		GlobalVariables.Instance.Character1 = -1;
-		GlobalVariables.Instance.Character2 = -1;
-		GlobalVariables.Instance.Character3 = -1;
-		GlobalVariables.Instance.Character4 = -1;
 
 		goalsEnabled = new GameObject[goalsNumber];
 

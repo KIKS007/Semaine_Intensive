@@ -62,13 +62,13 @@ public class PlayerScript : MonoBehaviour
 
 	[Header ("On Ground")]
 	public float maxGroundSpeed = 3f;
+	public float maxHoldingBallSpeed = 3f;
 	public LayerMask groundLayer;
 
 	public bool facingLeft;
 	private Rigidbody rb;
 
 	[Header ("In Air")]
-	public float maxAirSpeed = 2f;
 	public float gravityForce;
 	public float fastGravityForce;
 
@@ -268,12 +268,16 @@ public class PlayerScript : MonoBehaviour
 
 		if(playerState == PlayerState.OnGround)
 		{
-			rb.MovePosition(rb.position + movement * maxGroundSpeed * Time.fixedDeltaTime);
+			float speedTemp = holdingBall ? maxHoldingBallSpeed : maxGroundSpeed;
+
+			rb.MovePosition(rb.position + movement * speedTemp * Time.fixedDeltaTime);
 		}
 
 		if(playerState == PlayerState.InAir || playerState == PlayerState.Falling)
 		{
-			rb.MovePosition(rb.position + movement * maxAirSpeed * Time.fixedDeltaTime);
+			float speedTemp = holdingBall ? maxHoldingBallSpeed : maxGroundSpeed;
+
+			rb.MovePosition(rb.position + movement * speedTemp * Time.fixedDeltaTime);
 		}
 	}
 
