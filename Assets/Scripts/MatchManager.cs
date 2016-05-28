@@ -9,6 +9,7 @@ using DarkTonic.MasterAudio;
 
 public class MatchManager : MonoBehaviour 
 {
+	public GameObject pauseGO;
 	public Transform[] playersTF = new Transform[4];
 
 	[Header ("Switching Goals")]
@@ -86,6 +87,7 @@ public class MatchManager : MonoBehaviour
 	public RectTransform quitButton;
 
 	private int randomInt;
+	private int fontSizeOriginal;
 
 	// Use this for initialization
 	void Awake () 
@@ -107,6 +109,7 @@ public class MatchManager : MonoBehaviour
 
 		StartCoroutine (SetNamesToPlayers ());
 
+		fontSizeOriginal = team2Score.GetComponent<Text>().fontSize;
 	}
 	
 	// Update is called once per frame
@@ -243,8 +246,6 @@ public class MatchManager : MonoBehaviour
 	{
 		yield return new WaitForSeconds (1);
 
-		int fontSizeOriginal = text.fontSize;
-
 		DOTween.To(()=> text.fontSize, x=> text.fontSize = x, fontSize, punchDuration).SetEase(punchEase).SetId("Punch");
 
 		yield return new WaitForSeconds (punchDuration);
@@ -253,9 +254,35 @@ public class MatchManager : MonoBehaviour
 		DOTween.To(()=> text.fontSize, x=> text.fontSize = x, fontSizeOriginal, resetDuration).SetEase(resetEase).SetId("Punch");
 	}
 
+	public void PauseGame ()
+	{
+		if(GlobalVariables.Instance.GamePaused == false)
+		{
+			GlobalVariables.Instance.GamePaused = true;
+
+			Time.timeScale = 0;
+
+			pauseGO.SetActive (true);
+		}
+		else
+		{
+			GlobalVariables.Instance.GamePaused = false;
+
+			Time.timeScale = 1;
+
+			pauseGO.SetActive (false);
+		}
+	}
 
 	public void InstantiateBall ()
 	{
+		StartCoroutine (InstantiateBallCoroutine ());
+	}
+
+	IEnumerator InstantiateBallCoroutine ()
+	{
+		yield return new WaitForSeconds (1);
+
 		Vector3 randomPos = new Vector3 ();
 
 		do

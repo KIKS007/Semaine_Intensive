@@ -201,6 +201,11 @@ public class PlayerScript : MonoBehaviour
 		{
 			StartCoroutine (CanPassThrough ());
 		}
+
+		if(player.GetButtonDown("Pause"))
+		{
+			matchManager.PauseGame ();
+		}
 	}
 
 	// Update is called once per frame

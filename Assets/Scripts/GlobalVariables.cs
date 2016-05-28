@@ -16,4 +16,6 @@ public class GlobalVariables : Singleton<GlobalVariables>
 	public bool Gamepad4Connected = false;
 
 	public bool GameOver = true;
+
+	public bool GamePaused = false;
 }
