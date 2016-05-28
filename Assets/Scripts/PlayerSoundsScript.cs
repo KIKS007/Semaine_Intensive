@@ -22,6 +22,7 @@ public class PlayerSoundsScript : MonoBehaviour
 		//playerScript.OnGround += Ground;
 		playerScript.OnThrow += Throw;
 		playerScript.OnDash += Dash;
+		playerScript.OnJump += Jump;
 
 	}
 
@@ -35,7 +36,6 @@ public class PlayerSoundsScript : MonoBehaviour
 
 	void Stun ()
 	{
-		Debug.Log ("Stun");
 		MasterAudio.PlaySound3DFollowTransformAndForget ("HIT_PERSO", transform);
 	}
 
@@ -47,6 +47,12 @@ public class PlayerSoundsScript : MonoBehaviour
 	void Dash ()
 	{
 		MasterAudio.PlaySound3DFollowTransformAndForget ("DASH", transform);
+
+	}
+
+	void Jump ()
+	{
+		MasterAudio.PlaySound3DFollowTransformAndForget ("JUMP", transform);
 
 	}
 }

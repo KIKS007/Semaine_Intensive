@@ -3,6 +3,7 @@ using System.Collections;
 using Rewired;
 using DG.Tweening;
 using UnityEngine.UI;
+using DarkTonic.MasterAudio;
 
 public class PlayMenuScript : MonoBehaviour 
 {
@@ -285,6 +286,8 @@ public class PlayMenuScript : MonoBehaviour
 
 		if(textInt[whichPlayer] != 4)
 		{
+			MasterAudio.PlaySound ("NAVIGATION");
+
 			playersText [whichPlayer].DOAnchorPosX(xPositions[ textInt[whichPlayer] + 1 ], movementDuration).SetEase(movementEase);
 
 			textInt [whichPlayer] += 1;
@@ -309,6 +312,8 @@ public class PlayMenuScript : MonoBehaviour
 
 		if(textInt[whichPlayer] != 0)
 		{
+			MasterAudio.PlaySound ("NAVIGATION");
+
 			playersText [whichPlayer].DOAnchorPosX(xPositions[ textInt[whichPlayer] - 1 ], movementDuration).SetEase(movementEase);
 
 			textInt [whichPlayer] -= 1;

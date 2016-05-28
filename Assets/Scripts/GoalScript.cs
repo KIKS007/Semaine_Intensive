@@ -66,6 +66,10 @@ public class GoalScript : MonoBehaviour
 				GameObject ball = other.gameObject.GetComponent<PlayerScript>().holdBall;
 
 				other.gameObject.GetComponent<PlayerScript>().ReleaseVoid ();
+				other.gameObject.GetComponent<PlayerScript> ().playerState = PlayerState.InAir;
+				other.gameObject.GetComponent<PlayerScript> ().dashState = DashState.CanDash;
+				other.gameObject.GetComponent<PlayerScript> ().jumpState = JumpState.CanJump;
+
 				matchManager.PointToTeam1 (1);
 				DestroyBall (ball);
 				matchManager.InstantiateBall ();

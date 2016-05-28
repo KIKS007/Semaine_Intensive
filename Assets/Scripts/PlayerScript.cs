@@ -333,7 +333,9 @@ public class PlayerScript : MonoBehaviour
 			playerState = PlayerState.Falling;
 			gameObject.layer = 13;
 
-
+			if(OnJump != null)
+				OnJump ();
+			
 			yield return new WaitForSeconds (0.1f);
 		}
 
@@ -349,7 +351,8 @@ public class PlayerScript : MonoBehaviour
 			rb.velocity = new Vector3 (rb.velocity.x, jumpForce, rb.velocity.z);
 			jumpState = JumpState.HasJumped;
 
-			OnJump ();
+			if(OnJump != null)
+				OnJump ();
 
 			gameObject.layer = 12;
 		}
@@ -632,7 +635,7 @@ public class PlayerScript : MonoBehaviour
 		yield return null;
 	}
 
-	void OnCollisionEnter(Collision collision)
+	void OnCollisionStay(Collision collision)
 	{
 		if(dashState == DashState.Dashing && collision.gameObject.tag == "Player")
 		{

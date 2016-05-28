@@ -77,6 +77,14 @@ public class MatchManager : MonoBehaviour
 	public float rgbSpliValue;
 	public float glitchDuration;
 
+	[Header ("Game Over Buttons")]
+	public float timeBeforeButtons;
+	public float movementDuration;
+	public float maxY;
+	public RectTransform menuButton;
+	public RectTransform restartButton;
+	public RectTransform quitButton;
+
 	private int randomInt;
 
 	// Use this for initialization
@@ -214,6 +222,7 @@ public class MatchManager : MonoBehaviour
 		StartCoroutine (GoalGlitch ());
 		DOTween.Pause("Punch");
 		StartCoroutine (PunchTextScale (team1Score.GetComponent<Text>()));
+		StartCoroutine (GoalSounds ());
 	}
 
 	public void PointToTeam2 (int howManyPoints)
@@ -222,8 +231,17 @@ public class MatchManager : MonoBehaviour
 		StartCoroutine (GoalGlitch ());
 		DOTween.Pause("Punch");
 		StartCoroutine (PunchTextScale (team2Score.GetComponent<Text>()));
+		StartCoroutine (GoalSounds ());
 	}
 
+	IEnumerator GoalSounds ()
+	{
+		MasterAudio.PlaySound ("GOAL");
+
+		yield return new WaitForSeconds (0.5f);
+
+		MasterAudio.PlaySound ("GOAL_Clap");
+	}
 
 	IEnumerator PunchTextScale (Text text)
 	{
@@ -403,9 +421,10 @@ public class MatchManager : MonoBehaviour
 	{
 		gameEnded = true;
 
+		MasterAudio.PlaySound ("WIN");
+
 		textteam1.SetActive(false);
 		textteam2.SetActive(false);
-		
 
 		for(int i = 0; i < goalsEnabled.Length; i++)
 		{
@@ -420,6 +439,7 @@ public class MatchManager : MonoBehaviour
 		game.SetActive(false);
 		gameOver.SetActive(true);
 
+		StartCoroutine (SetGameOverButtons ());
 
 		if(whichTeam == 1)
 		{
@@ -461,9 +481,28 @@ public class MatchManager : MonoBehaviour
 			charactersAnim[3].gameObject.SetActive(false);
 
 
-		menu.GetComponent<Button>().Select ();
-
 		GlobalVariables.Instance.GameOver = true;
+	}
+
+	IEnumerator SetGameOverButtons ()
+	{
+		menuButton.GetComponent<Button> ().interactable = false;
+		restartButton.GetComponent<Button> ().interactable = false;
+		quitButton.GetComponent<Button> ().interactable = false;
+
+		yield return new WaitForSeconds (timeBeforeButtons);
+
+		menuButton.DOAnchorPosY (maxY, movementDuration).SetEase (Ease.InOutCubic).SetDelay(0.5f);
+		restartButton.DOAnchorPosY (maxY, movementDuration).SetEase (Ease.InOutCubic);
+		quitButton.DOAnchorPosY (maxY, movementDuration).SetEase (Ease.InOutCubic).SetDelay(0.5f);
+
+		menuButton.GetComponent<Button> ().interactable = true;
+		restartButton.GetComponent<Button> ().interactable = true;
+		quitButton.GetComponent<Button> ().interactable = true;
+
+		yield return new WaitForSeconds (movementDuration);
+
+		restartButton.GetComponent<Button> ().Select ();
 	}
 
 	public void Menu ()
