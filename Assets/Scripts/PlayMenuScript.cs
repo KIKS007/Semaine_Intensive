@@ -50,10 +50,10 @@ public class PlayMenuScript : MonoBehaviour
 		playersText[2].anchoredPosition = new Vector2 (xPositions[2], playersText[2].anchoredPosition.y);
 		playersText[3].anchoredPosition = new Vector2 (xPositions[2], playersText[3].anchoredPosition.y);
 
-		ReInput.ControllerConnectedEvent += EnableTexts;
 		ReInput.ControllerDisconnectedEvent += EnableTexts;
+		ReInput.ControllerConnectedEvent += EnableTexts;
 
-		EnableTexts ();
+		EnableTexts2 ();
 	}
 	
 	// Update is called once per frame
@@ -134,7 +134,7 @@ public class PlayMenuScript : MonoBehaviour
 		}
 	}
 
-	void EnableTexts ()
+	void EnableTexts2 ()
 	{
 		if(ReInput.controllers.GetJoystick (0) == null && playersText[0].GetComponent<Text> ().color != disabledColor)
 		{

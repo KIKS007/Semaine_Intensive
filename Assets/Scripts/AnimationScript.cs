@@ -20,10 +20,10 @@ public class AnimationScript : MonoBehaviour
 
 		//playerScript.OnFacingLeft = FaceLeft ;
 		//playerScript.OnFacinRight = FaceRight ;
-		playerScript.OnJump = Jump;
-		playerScript.OnStun = Stun;
-		playerScript.OnGround = Ground;
-		playerScript.OnThrow = Throw;
+		playerScript.OnJump += Jump;
+		playerScript.OnStun += Stun;
+		playerScript.OnGround += Ground;
+		playerScript.OnThrow += Throw;
 
 	}
 	

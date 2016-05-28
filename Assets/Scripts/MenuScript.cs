@@ -2,10 +2,13 @@
 using System.Collections;
 using Rewired;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using DarkTonic.MasterAudio;
 
 public class MenuScript : MonoBehaviour 
 {
+	public EventSystem eventSys;
 	public GameObject gamepadsManager;
 
 	public GameObject mainCanvas;
@@ -17,9 +20,14 @@ public class MenuScript : MonoBehaviour
 	public GameObject playButton;
 	public GameObject beginButton;
 
+	private GameObject previousSelectedGameobject = null;
+
+
 	// Use this for initialization
 	void Start () 
 	{
+		Cursor.visible = false;
+
 		mainCanvas.SetActive(true);
 		creditsCanvas.SetActive(false);
 		playCanvas.SetActive(false);
@@ -38,7 +46,20 @@ public class MenuScript : MonoBehaviour
 			instructionsCanvas.SetActive(false);
 
 			playButton.GetComponent<Button>().Select ();
+
+			MasterAudio.PlaySound ("MENU_Cancel");
 		}
+
+		KeepButtonSelected ();
+	}
+
+	void KeepButtonSelected ()
+	{
+		if(eventSys.currentSelectedGameObject != null)
+			previousSelectedGameobject = eventSys.currentSelectedGameObject;
+
+		else if (eventSys.currentSelectedGameObject == null)
+			previousSelectedGameobject.GetComponent<Button> ().Select ();
 	}
 
 	public void Play () 

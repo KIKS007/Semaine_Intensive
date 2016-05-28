@@ -5,6 +5,7 @@ using Rewired;
 using UnityEngine.SceneManagement;
 using DG.Tweening;
 using Colorful;
+using DarkTonic.MasterAudio;
 
 public class MatchManager : MonoBehaviour 
 {
@@ -83,6 +84,12 @@ public class MatchManager : MonoBehaviour
 	{
 		gameOver.SetActive (false);
 
+		MasterAudio.PlaySound ("INTRO_MATCH");
+		GlobalVariables.Instance.Character1 = -1;
+		GlobalVariables.Instance.Character2 = -1;
+		GlobalVariables.Instance.Character3 = -1;
+		GlobalVariables.Instance.Character4 = -1;
+
 		goalsEnabled = new GameObject[goalsNumber];
 
 		team1points = 0;
@@ -95,6 +102,7 @@ public class MatchManager : MonoBehaviour
 			SetFirstGoals ();
 
 		StartCoroutine (SetNamesToPlayers ());
+
 	}
 	
 	// Update is called once per frame

@@ -36,13 +36,21 @@ public enum DashState
 
 public class PlayerScript : MonoBehaviour 
 {
-	public Action OnDash;
-	public Action OnGround;
-	public Action OnJump;
-	public Action OnStun;
-	public Action OnThrow;
-	public Action OnFacinRight;
-	public Action OnFacingLeft;
+	public delegate void OnDashDelegate();
+	public delegate void OnGroundDelegate();
+	public delegate void OnJumpDelegate();
+	public delegate void OnStunDelegate();
+	public delegate void OnThrowDelegate();
+	public delegate void OnFacinRightDelegate();
+	public delegate void OnFacingLeftDelegate();
+
+	public event OnDashDelegate OnDash;
+	public event OnDashDelegate OnGround;
+	public event OnDashDelegate OnJump;
+	public event OnDashDelegate OnStun;
+	public event OnDashDelegate OnThrow;
+	public event OnDashDelegate OnFacinRight;
+	public event OnDashDelegate OnFacingLeft;
 
 	public int playerId = 0; // The Rewired player id of this character
 	[HideInInspector]
@@ -365,6 +373,9 @@ public class PlayerScript : MonoBehaviour
 		dashState = DashState.Dashing;
 
 		vibration.VibrateBothMotors(playerId, dashVibration.x, dashVibration.z, dashVibration.y, dashVibration.z);
+
+		if (OnDash != null)
+			OnDash ();
 
 		if(!freeDash || throwDirection.magnitude == 0)
 		{

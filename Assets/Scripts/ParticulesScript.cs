@@ -20,7 +20,7 @@ public class ParticulesScript : MonoBehaviour
 	void Start () 
 	{
 		playerScript = GetComponent<PlayerScript> ();
-		playerScript.OnGround = Ground;
+		playerScript.OnGround += Ground;
 	}
 	
 	// Update is called once per frame
