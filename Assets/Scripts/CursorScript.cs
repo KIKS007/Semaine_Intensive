@@ -31,9 +31,12 @@ public class CursorScript : MonoBehaviour
 		playerState = playerScript.playerState;
 		player = playerScript.player;
 
-		FollowPlayer ();
-		SetRotation ();
-		SetOpacity ();
+		if(GlobalVariables.Instance.GamePaused == false)
+		{
+			FollowPlayer ();
+			SetRotation ();
+			SetOpacity ();
+		}
 	}
 
 	void SetOpacity ()
@@ -67,6 +70,22 @@ public class CursorScript : MonoBehaviour
 
 			var rotation = Quaternion.AngleAxis(-Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg, Vector3.back);
 			cursor.transform.rotation = rotation;
+		}
+
+		else
+		{
+			if(playerScript.facingLeft)
+			{
+				var rotation = Quaternion.AngleAxis(-Mathf.Atan2(0, -1)*Mathf.Rad2Deg, Vector3.back);
+				cursor.transform.rotation = rotation;
+			}
+			else
+			{
+				var rotation = Quaternion.AngleAxis(-Mathf.Atan2(0, 1)*Mathf.Rad2Deg, Vector3.back);
+				cursor.transform.rotation = rotation;
+			}
+
+
 		}
 	}
 }

@@ -91,7 +91,7 @@ public class VibrationManager : MonoBehaviour
 
 			yield return myTween.WaitForCompletion ();
 
-			yield return new WaitForSeconds (durationLeftMotor);
+			yield return StartCoroutine (CoroutineUtil.WaitForRealSeconds (durationLeftMotor));
 
 			myTween = DOTween.To(()=> playersLeftMotor [whichPlayer], x=> playersLeftMotor [whichPlayer] = x, 0, stopDuration).SetEase(easeType).SetId("Vibration" + whichPlayer);
 
@@ -114,7 +114,7 @@ public class VibrationManager : MonoBehaviour
 
 			yield return myTween.WaitForCompletion ();
 
-			yield return new WaitForSeconds (durationRightMotor);
+			yield return StartCoroutine (CoroutineUtil.WaitForRealSeconds (durationRightMotor));
 
 			myTween = DOTween.To(()=> playersRightMotor [whichPlayer], x=> playersRightMotor [whichPlayer] = x, 0, stopDuration).SetEase(easeType).SetId("Vibration" + whichPlayer);
 
@@ -134,6 +134,11 @@ public class VibrationManager : MonoBehaviour
 		GamePad.SetVibration (PlayerIndex.Two, 0, 0);
 		GamePad.SetVibration (PlayerIndex.Three, 0, 0);
 		GamePad.SetVibration (PlayerIndex.Four, 0, 0);
+
+		DOTween.Pause ("Vibration0");
+		DOTween.Pause ("Vibration1");
+		DOTween.Pause ("Vibration2");
+		DOTween.Pause ("Vibration3");
 	}
 
 	void StopVibrationGamepad (int whichPlayer)

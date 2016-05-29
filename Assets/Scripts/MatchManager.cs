@@ -6,10 +6,12 @@ using UnityEngine.SceneManagement;
 using DG.Tweening;
 using Colorful;
 using DarkTonic.MasterAudio;
+using XInputDotNetPure;
 
 public class MatchManager : MonoBehaviour 
 {
 	public GameObject pauseGO;
+	public GameObject restartButtonPause;
 	public Transform[] playersTF = new Transform[4];
 
 	[Header ("Switching Goals")]
@@ -92,7 +94,11 @@ public class MatchManager : MonoBehaviour
 	// Use this for initialization
 	void Awake () 
 	{
+		DOTween.Init ();
+		DOTween.defaultTimeScaleIndependent = true;
+
 		gameOver.SetActive (false);
+		pauseGO.SetActive (false);
 
 		MasterAudio.PlaySound ("INTRO_MATCH");
 
@@ -262,7 +268,17 @@ public class MatchManager : MonoBehaviour
 
 			Time.timeScale = 0;
 
+			restartButtonPause.GetComponent<Button> ().Select ();
 			pauseGO.SetActive (true);
+			restartButtonPause.GetComponent<Button> ().Select ();
+
+
+			GameObject.FindGameObjectWithTag ("VibrationManager").GetComponent<VibrationManager> ().StopVibration ();
+			GamePad.SetVibration (PlayerIndex.One, 0, 0);
+			GamePad.SetVibration (PlayerIndex.Two, 0, 0);
+			GamePad.SetVibration (PlayerIndex.Three, 0, 0);
+			GamePad.SetVibration (PlayerIndex.Four, 0, 0);
+
 		}
 		else
 		{
@@ -530,11 +546,17 @@ public class MatchManager : MonoBehaviour
 
 	public void Menu ()
 	{
+		GlobalVariables.Instance.GamePaused = false;
+		Time.timeScale = 1;
+
 		SceneManager.LoadScene("Menu");
 	}
 
 	public void Restart ()
 	{
+		GlobalVariables.Instance.GamePaused = false;
+		Time.timeScale = 1;
+
 		SceneManager.LoadScene("Level 3");
 	}
 

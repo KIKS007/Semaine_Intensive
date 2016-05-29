@@ -170,7 +170,7 @@ public class PlayerScript : MonoBehaviour
 		if(playerState != PlayerState.Aiming)
 			CanPassThrough ();
 	
-		if(!stunned)
+		if(!stunned && GlobalVariables.Instance.GamePaused == false)
 			SetFacing();
 
 		throwDirection = new Vector3(player.GetAxis("Aim_Horizontal"), player.GetAxis("Aim_Vertical"), 0);
@@ -203,9 +203,12 @@ public class PlayerScript : MonoBehaviour
 		}
 
 		if(player.GetButtonDown("Pause"))
-		{
 			matchManager.PauseGame ();
-		}
+		
+
+		if(player.GetButtonDown("Cancel") && GlobalVariables.Instance.GamePaused)
+			matchManager.PauseGame ();
+
 	}
 
 	// Update is called once per frame
