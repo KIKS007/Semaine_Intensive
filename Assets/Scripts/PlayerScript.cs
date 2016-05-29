@@ -152,8 +152,8 @@ public class PlayerScript : MonoBehaviour
 	// Use this for initialization
 	void Start () 
 	{
-		//GetPlayerId ();
-		player = ReInput.players.GetPlayer(playerId);
+		GetPlayerId ();
+		//player = ReInput.players.GetPlayer(playerId);
 		rb = GetComponent<Rigidbody>();
 		distToGround = GetComponent<Collider> ().bounds.extents.y;
 		screenShake = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraScreenShake>();

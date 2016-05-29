@@ -80,8 +80,6 @@ public class GoalScript : MonoBehaviour
 				other.gameObject.GetComponent<PlayerScript>().ReleaseVoid ();
 				matchManager.PointToTeam2 (1);
 				DestroyBall (ball);
-				matchManager.InstantiateBall ();
-
 			}
 
 			screenShake.CameraShaking(screenShakeDuration, screenShakeForce);
