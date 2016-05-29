@@ -103,7 +103,7 @@ public class PlayMenuScript : MonoBehaviour
 			playersText[0].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
 			playersText[0].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
 		}
-
+			
 		if(ReInput.controllers.GetJoystick (1) == null && playersText[1].GetComponent<Text> ().color != disabledColor)
 		{
 			playersText [1].DOAnchorPosX(xPositions[2], movementDuration).SetEase(movementEase);
@@ -133,6 +133,19 @@ public class PlayMenuScript : MonoBehaviour
 			playersText[3].transform.GetChild(0).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
 			playersText[3].transform.GetChild(1).GetComponent<SpriteRenderer> ().DOColor (disabledColor, movementDuration);
 		}
+
+		if(ReInput.controllers.GetJoystick (0) != null && playersText[0].GetComponent<Text> ().color == disabledColor)
+			SetColor ();
+
+		if(ReInput.controllers.GetJoystick (1) != null && playersText[1].GetComponent<Text> ().color == disabledColor)
+			SetColor ();
+
+		if(ReInput.controllers.GetJoystick (2) != null && playersText[2].GetComponent<Text> ().color == disabledColor)
+			SetColor ();
+
+		if(ReInput.controllers.GetJoystick (3) != null && playersText[3].GetComponent<Text> ().color == disabledColor)
+			SetColor ();
+
 	}
 
 	void EnableTexts2 ()

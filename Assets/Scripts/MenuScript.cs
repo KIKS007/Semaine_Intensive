@@ -63,7 +63,7 @@ public class MenuScript : MonoBehaviour
 		if(eventSys.currentSelectedGameObject != null)
 			previousSelectedGameobject = eventSys.currentSelectedGameObject;
 
-		else if (eventSys.currentSelectedGameObject == null)
+		else if (eventSys.currentSelectedGameObject == null && previousSelectedGameobject != null)
 			previousSelectedGameobject.GetComponent<Button> ().Select ();
 	}
 

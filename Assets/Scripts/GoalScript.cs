@@ -37,7 +37,6 @@ public class GoalScript : MonoBehaviour
 
 				matchManager.PointToTeam1 (1);
 				DestroyBall (other.gameObject);
-				matchManager.InstantiateBall ();
 			}
 
 			if(other.gameObject.GetComponent<BallScript>().team == Team.Team2)
@@ -45,9 +44,7 @@ public class GoalScript : MonoBehaviour
 				InstantiateBallParticles (other.transform.position);
 
 				matchManager.PointToTeam2 (1);
-				DestroyBall (other.gameObject);
-				matchManager.InstantiateBall ();
-	
+				DestroyBall (other.gameObject);	
 			}
 				
 			screenShake.CameraShaking(screenShakeDuration, screenShakeForce);
@@ -72,7 +69,6 @@ public class GoalScript : MonoBehaviour
 
 				matchManager.PointToTeam1 (1);
 				DestroyBall (ball);
-				matchManager.InstantiateBall ();
 			}
 
 			if(other.gameObject.GetComponent<PlayerScript>().team == Team.Team2)

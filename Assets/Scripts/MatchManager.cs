@@ -228,6 +228,9 @@ public class MatchManager : MonoBehaviour
 		DOTween.Pause("Punch");
 		StartCoroutine (PunchTextScale (team1Score.GetComponent<Text>()));
 		StartCoroutine (GoalSounds ());
+
+		if (!gameEnded)
+			InstantiateBall ();
 	}
 
 	public void PointToTeam2 (int howManyPoints)
@@ -237,6 +240,9 @@ public class MatchManager : MonoBehaviour
 		DOTween.Pause("Punch");
 		StartCoroutine (PunchTextScale (team2Score.GetComponent<Text>()));
 		StartCoroutine (GoalSounds ());
+
+		if (!gameEnded)
+			InstantiateBall ();
 	}
 
 	IEnumerator GoalSounds ()
